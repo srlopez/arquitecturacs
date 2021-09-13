@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Santi\\Dev\\SERV\\proyecto3\\proyecto3.csproj",
+      "projectUniqueName": "C:\\Users\\Santi\\Dev\\SERV\\arquitecturacs\\proyecto3.csproj",
       "projectName": "proyecto3",
-      "projectPath": "C:\\Users\\Santi\\Dev\\SERV\\proyecto3\\proyecto3.csproj",
+      "projectPath": "C:\\Users\\Santi\\Dev\\SERV\\arquitecturacs\\proyecto3.csproj",
       "packagesPath": "C:\\Users\\Santi\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Santi\\Dev\\SERV\\proyecto3\\obj\\",
+      "outputPath": "C:\\Users\\Santi\\Dev\\SERV\\arquitecturacs\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Santi\\AppData\\Roaming\\NuGet\\NuGet.Config"
