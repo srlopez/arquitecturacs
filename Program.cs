@@ -1,9 +1,8 @@
 ﻿/*
-PROGRAMACION ESTRUCTURADA POR PROCEDIMIENTO O SUBRUTINAS
+PROGRAMACION CON FUNCIONES PARÁMETORS * RETURN;
 Calcula la media del array
 
-Puedes usar FOR, WHILE, DO y llaves {}
-Debes usar funciones sin paŕametros ni retorno
+Debes usar funciones con retorno y variables locales;
 
 Restricciones:
     - todo variables globales
@@ -11,41 +10,29 @@ Restricciones:
 
 using System;
 
-var notas = new decimal[] { };
-decimal suma;
-int index;
-decimal media;
 
-Incializacion();
-Proceso();
-Finalizacion();
+Console.WriteLine("Empezamos");
+var notas = new[] { 7.5M, 4, 6, 5, 4, 6.5M, 7.5M };
+var suma = CalculoDeLaSuma(notas);
+var media = CalculoDeLaMedia(suma, notas.Length);
+Console.WriteLine($"La media es {media:0.00}");
+Console.WriteLine("Fin");
 
-
-void Incializacion()
+decimal CalculoDeLaSuma(decimal[] datos)
 {
-    Console.WriteLine("Inicializamos los datos");
-    notas = new[] { 7.5M, 4, 6, 5, 4, 6.5M, 7.5M };
-}
-
-void Proceso()
-{
-    Console.WriteLine("Procesamos el ciclo");
-    suma = 0;
-    index = 0;
-    while (index < notas.Length)
+    var suma = 0M;
+    var index = 0;
+    do
     {
-        suma += notas[index];
+        suma += datos[index];
         index++;
     }
-
+    while (index < datos.Length);
+    return suma;
 }
 
-void Finalizacion()
-{
-    media = suma / notas.Length;
-    Console.WriteLine($"La media es {media:0.00}");
-    Console.WriteLine("Fin");
+decimal CalculoDeLaMedia(decimal total, int nElementos) => total / nElementos;
 
-}
+
 
 
