@@ -45,11 +45,11 @@
 ``` 
     git init  
     git add .  
-    git commit -m “faseX”  
+    git commit -m “pasoX”  
     git branch faseX  
-    git checkout fasex/master  
+    git checkout pasoX/master  
 
-    git push -u origin master/faseX
+    git push -u origin master/pasoX
 ```
 
 
