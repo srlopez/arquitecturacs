@@ -1,9 +1,11 @@
 ﻿/*
 PROGRAMACION CON ARQUITECTURA 
+CON REPOSITORIO
 
 Sistema
 Vista
 Controlador
+Repositorio
 
 */
 
