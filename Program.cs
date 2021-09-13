@@ -1,34 +1,31 @@
 ﻿/*
-PROGRAMACION IMPERATIVA
-con las siguientes instrucciones exclusivamente IF, GOTO y LABEL
-calcula la media del array
+PROGRAMACION ESTRUCTURADA POR BLOQUES
+Calcula la media del array
 
-Restricciones
+Puedes usar FOR, WHILE, DO y llaves {}
+
+Restricciones:
     - todo variables globales
     - ninguna función
-    - no usar llaves {} para bloques de instruciones
-    - if sin else.
 */
-    using System;
 
-    var notas = new []{ 7.5M, 4, 6, 5, 4, 6.5M, 7.5M };
-    //var notas = new []{ 1M,1,1,1,1,1 };
-    var suma = 0M;
-    var media = 0M;
-    var index = 0;
+using System;
+
+var notas = new[] { 7.5M, 4, 6, 5, 4, 6.5M, 7.5M };
+var suma = 0M;
+var index = 0;
 
 //  EMPEZAMOS
-    Console.WriteLine("Empiezo");
+Console.WriteLine("Empiezo");
 
 //  CICLO
-sumar:
-    suma = suma + notas[index];
-    index = index +1;
-    if(index<notas.Length) goto sumar;
-
-//  FIN CICLO
-    Console.WriteLine("fin ciclo");
-    media = suma / notas.Length;
+for (suma = 0; index < notas.Length; suma+=notas[index], index++)
+//{
+//   suma = suma + notas[index];
+//}
 
 //  FINAL
-    Console.WriteLine($"La media es {media:0.00}");
+
+Console.WriteLine("fin ciclo");
+var media = suma / notas.Length;
+Console.WriteLine($"La media es {media:0.00}");
