@@ -2,21 +2,10 @@
 PROGRAMACION CON ABSTRACIONES - REPRESENTACION DE OBJETOS;
 Calcula la media del array
 
-Decide cómo representar los valores de nota
-cuando sabemos que cada nota la ha obtenifo un alumno.
-Luis, Marta, Marcos, Aroa, Nerea, Kike, Juan
-7.5M, 4,     6,      5,    4,     6.5M, 7.5M 
-
-Estudiar los distintos tipos de datos que nos ofrece c# para abstracciones de objetos del mundo real
-Tuplas, https://docs.microsoft.com/es-es/dotnet/csharp/language-reference/builtin-types/value-tuples
-estructuras: https://docs.microsoft.com/es-es/dotnet/csharp/language-reference/builtin-types/struct
-registros, https://docs.microsoft.com/es-es/dotnet/csharp/language-reference/builtin-types/record
-clases https://docs.microsoft.com/es-es/dotnet/csharp/fundamentals/types/classes
-y Dictionary<string, object> https://docs.microsoft.com/es-es/dotnet/api/system.collections.generic.dictionary-2?view=net-5.0
-
 */
 
 using System;
+using System.Linq;
 
 Console.WriteLine("Empezamos");
 
@@ -51,32 +40,16 @@ public class Calificacion
 
 public class Sistema
 {
-
     Calificacion[] Notas;
 
     public Sistema( Calificacion[] notas ){
         Notas = notas;
     }
 
-    private decimal CalculoDeLaSuma(decimal[] datos)
-    {
-        var suma = 0M;
-        foreach(decimal val in datos)
-        {
-            suma += val;
-        }
-        return suma;
-    }
-
+    private decimal CalculoDeLaSuma(decimal[] datos) => datos.Sum();
     public decimal CalculoDeLaMedia()
     {
-
-        var notas = new decimal[Notas.Length];
-        var i = 0;
-        foreach (Calificacion cal in Notas)
-        {
-            notas[i++] = cal.Nota;
-        }
+        var notas = Notas.Select(calificacion => calificacion.Nota).ToArray();
         return CalculoDeLaSuma(notas) / Notas.Length;
     }
 }
