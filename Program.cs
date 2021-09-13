@@ -1,31 +1,51 @@
 ﻿/*
-PROGRAMACION ESTRUCTURADA POR BLOQUES
+PROGRAMACION ESTRUCTURADA POR PROCEDIMIENTO O SUBRUTINAS
 Calcula la media del array
 
 Puedes usar FOR, WHILE, DO y llaves {}
+Debes usar funciones sin paŕametros ni retorno
 
 Restricciones:
     - todo variables globales
-    - ninguna función
 */
 
 using System;
 
-var notas = new[] { 7.5M, 4, 6, 5, 4, 6.5M, 7.5M };
-var suma = 0M;
-var index = 0;
+var notas = new decimal[] { };
+decimal suma;
+int index;
+decimal media;
 
-//  EMPEZAMOS
-Console.WriteLine("Empiezo");
+Incializacion();
+Proceso();
+Finalizacion();
 
-//  CICLO
-for (suma = 0; index < notas.Length; suma+=notas[index], index++)
-//{
-//   suma = suma + notas[index];
-//}
 
-//  FINAL
+void Incializacion()
+{
+    Console.WriteLine("Inicializamos los datos");
+    notas = new[] { 7.5M, 4, 6, 5, 4, 6.5M, 7.5M };
+}
 
-Console.WriteLine("fin ciclo");
-var media = suma / notas.Length;
-Console.WriteLine($"La media es {media:0.00}");
+void Proceso()
+{
+    Console.WriteLine("Procesamos el ciclo");
+    suma = 0;
+    index = 0;
+    while (index < notas.Length)
+    {
+        suma += notas[index];
+        index++;
+    }
+
+}
+
+void Finalizacion()
+{
+    media = suma / notas.Length;
+    Console.WriteLine($"La media es {media:0.00}");
+    Console.WriteLine("Fin");
+
+}
+
+
