@@ -27,8 +27,10 @@
     Objetos del mundo real  
     Dos abstracciones (Tuplas, estructuras, registros, clases y Dictionary<string, object> dic)  
     Tipos x Valor y Referencia, (inmutable, mutable)  
-    - El sistema en sí (El sistema a desrrollar)  
-    - La nota (Objeto del Negocio)  
+    - La calificación (alumno y nota) (Objeto del Negocio) 
+
+1. Paso:  
+    El propio sistema a desarrollar  
 
 1. Paso:  
     Colecciones, lambdas y envidia  
