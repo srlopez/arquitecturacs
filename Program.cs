@@ -8,23 +8,14 @@ Controlador
 */
 
 using System;
+using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 
 Console.WriteLine("Empezamos");
 
-Calificacion[] notas = new[] {
-        //Luis, Marta, Marcos, Aroa, Nerea, Kike, Juan
-        //7.5M, 4,     6,      5,    4,     6.5M, 7.5M 
-        new Calificacion("Luis", 7.5M),
-        new Calificacion("Marta", 4),
-        new Calificacion("Marcos", 6),
-        new Calificacion("Aroa", 5),
-        new Calificacion("Nerea", 4),
-        new Calificacion("Kike", 6.5M),
-        new Calificacion("Juan", 7.5M)
-    };
-
-var sistema = new Sistema(notas);
+var repositorio = new RepositorioCSV();
+var sistema = new Sistema(repositorio);
 var vista = new Vista();
 var controlador = new Controlador(sistema, vista);
 controlador.Run();
@@ -126,28 +117,72 @@ public class Calificacion
 {
     public string Nombre;
     public decimal Nota;
-    public Calificacion(string nombre, decimal nota)
-    {
-        Nombre = nombre;
-        Nota = nota;
-    }
+
+    // public Calificacion(string nombre, decimal nota)
+    // {
+    //     Nombre = nombre;
+    //     Nota = nota;
+    // }
+
     public override string ToString() => $"({Nombre}, {Nota})";
+
+    internal static Calificacion ParseRow(string row)
+    {
+        //Console.WriteLine(row);
+        var columns = row.Split(',');
+        return new Calificacion()
+        {
+            Nombre = columns[0],
+            Nota = decimal.Parse(columns[1])
+        };
+
+    }
 }
 
 public class Sistema
 {
-    Calificacion[] Notas;
+    IRepositorio Repositorio;
 
-    public Sistema(Calificacion[] notas)
+    List<Calificacion> Notas;
+
+    public Sistema(IRepositorio repositorio)
     {
-        Notas = notas;
+        Repositorio = repositorio;
+        Repositorio.Inicializar();
     }
 
     private decimal CalculoDeLaSuma(decimal[] datos) => datos.Sum();
     public decimal CalculoDeLaMedia()
     {
+
+        Notas = Repositorio.CargarCalificaciones();
+
         var notas = Notas.Select(calificacion => calificacion.Nota).ToArray();
-        return CalculoDeLaSuma(notas) / Notas.Length;
+        return CalculoDeLaSuma(notas) / Notas.Count;
     }
 }
 
+public interface IRepositorio
+{
+    void Inicializar();
+    List<Calificacion> CargarCalificaciones();
+
+}
+
+public class RepositorioCSV : IRepositorio
+{
+    string datafile;
+    void IRepositorio.Inicializar()
+    {
+        this.datafile = "notas.csv";
+    }
+    List<Calificacion> IRepositorio.CargarCalificaciones()
+    {
+        return File.ReadAllLines(datafile)
+            .Skip(1)
+            .Where(row => row.Length > 0)
+            .Select(Calificacion.ParseRow).ToList();
+    }
+
+
+}
