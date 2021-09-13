@@ -1,6 +1,6 @@
 ﻿/*
 PROGRAMACION IMPERATIVA
-con las siguientes instrucciones IF, GOTO y LABEL
+con las siguientes instrucciones exclusivamente IF, GOTO y LABEL
 calcula la media del array
 
 Restricciones
