@@ -26,9 +26,10 @@ Console.WriteLine("Empezamos");
 // Tuplas
 var tLuis = (Nombre: "Luis", Nota: 7.5M);
 var tMarta = (Nombre: "Marta", Nota: 4M);
-var tNotas = new[] { tLuis, tMarta };
+var tMarcos = ("Marcos", 6M);  //<--- Ojo! sin nombre
+var tNotas = new[] { tLuis, tMarta, tMarcos };
 Tuple<string, int>[] tNotas0 = new Tuple<string, int>[] { }; //<-- inicializado a 0 elementos
-Console.WriteLine($"La primera nota del array de tuplas es {tNotas[0].Nota:0.00}");
+Console.WriteLine($"La primera nota del array de tuplas es {tNotas[0].Item1:0.00}");
 
 // Estructuras
 var sLuis = new SCalificacion("Luis", 7.5M);
@@ -56,9 +57,6 @@ dLuis["nota"] = 7.5M;
 var dNotas = new[] { dLuis, /*...*/};
 var dNotas0 = new Dictionary<string, Object>[7] ;
 Console.WriteLine($"La primera nota del array de diccionarios es {dNotas[0]["nota"]:0.00}");
-
-
-
 
 
 // TopLevel instrucciones obliga a las declaraciones abajo
