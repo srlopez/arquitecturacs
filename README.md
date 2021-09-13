@@ -5,7 +5,7 @@
     El número de suspensos, y el porcentaje de hombre y mujeres aprobados.
 
 1. Paso:  
-    Presentar el lenguaje
+    Presentar el lenguaje 
 
 1. Paso:  
     Programación imperativa  
