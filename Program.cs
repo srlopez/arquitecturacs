@@ -153,6 +153,7 @@ namespace Aplicacion
 
             public delegate bool MiPredicado<in T>(T obj);
             // https://zetcode.com/csharp/predicate/
+            
             private static bool AprobadosH(Calificacion c) => c.Sexo == "H" && c.Nota >= 5;
             private static bool Suspensos(Calificacion c) => c.Nota < 5;
             public void InformeSuspensos() =>
