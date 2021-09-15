@@ -1,8 +1,8 @@
-Alumno,Nota
-Luis, 7.5
-Marta, 4
-Marcos, 6
-Aroa, 5
-Nerea, 4
-Kike, 6.5
-Juan, 7.5
+X,Alumno,Nota
+H,Luis, 7.5
+M,Marta, 4
+H,Marcos, 6
+M,Aroa, 5
+M,Nerea, 4
+H,Kike, 6.5
+H,Juan, 7.5

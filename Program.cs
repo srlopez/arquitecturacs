@@ -14,18 +14,23 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 
-Console.WriteLine("Empezamos");
 
-var repositorio = new RepositorioCSV();
-var sistema = new Sistema(repositorio);
-var vista = new Vista();
-var controlador = new Controlador(sistema, vista);
-controlador.Run();
-Console.WriteLine("Fin");
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine("Empezamos");
 
+        var repositorio = new RepositorioCSV();
+        var sistema = new Sistema(repositorio);
+        var vista = new Vista();
+        var controlador = new Controlador(sistema, vista);
+        controlador.Run();
+        Console.WriteLine("Fin");
+    }
+}
 public class Vista
 {
-
     public int obtenerEntero(string prompt)
     {
         int entero = int.MinValue;
@@ -55,24 +60,31 @@ public class Vista
         }
         return entero;
     }
-    public int obtenerOpcion(string titulo, Object[] opciones, string prompt)
+
+    public void mostrarObjetos<T>(string titulo, List<T> opciones)
     {
-        Console.WriteLine($"   === {titulo} ===");
+        Console.WriteLine($"   > {titulo}");
         Console.WriteLine();
-        for (int i = 0; i < opciones.Length; i++)
+        for (int i = 0; i < opciones.Count; i++)
         {
-            Console.WriteLine($"   {i + 1:##}.- {opciones[i]}");
+            Console.WriteLine($"   {i + 1:##}.- {opciones[i].ToString()}");
         }
         Console.WriteLine();
+    }
+    public int obtenerOpcion<T>(string titulo, List<T> datos, string prompt)
+    {
+        mostrarObjetos(titulo, datos);
         return obtenerEntero(prompt);
     }
 }
 
 public class Controlador
 {
-    string[] menu = new[]{
+    List<String> menu = new List<String>{
        "Obtener la media de las notas",
-       "Obtener la mejor nota"
+       "Obtener la mejor nota",
+       "Informe A",
+       "Informe B"
        };
 
     private Sistema sistema;
@@ -89,7 +101,7 @@ public class Controlador
         while (true)
         {
             Console.Clear();
-            var opcion = vista.obtenerOpcion("Menu de Opciones", menu, "Seleciona una opción");
+            var opcion = vista.obtenerOpcion<String>("Menu de Opciones", menu, "Seleciona una opción");
             switch (opcion)
             {
                 case 1:
@@ -97,6 +109,12 @@ public class Controlador
                     break;
                 case 2:
                     Console.WriteLine($"No implementado");
+                    break;
+                case 3:
+                    InformeA();
+                    break;
+                case 4:
+                    InformeB();
                     break;
                 case int.MinValue:
                     // Salimos 
@@ -112,12 +130,35 @@ public class Controlador
         Console.WriteLine($"La media de la notas es: {sistema.CalculoDeLaMedia():0.00}");
     }
 
+    public void InformeA()
+    {
+        vista.mostrarObjetos("inforem A", sistema.Notas);
+    }
+
+        delegate bool Predicate<in T>(T obj);
+    private static bool AprobadosH(Calificacion c) =>  c.Sexo=="H" && c.Nota>=5;
+    private static bool Suspensos(Calificacion c) => c.Nota<5;
+   
+    public void InformeB()
+    {
+        vista.mostrarObjetos("informe B", sistema.Notas);
+    }
+
+    private void InformeGenerico(string titulo, List<Calificacion> lista){
+
+    }
+
+/*
+public delegate bool Predicate<in T>(T obj);
+
+*/
 
 }
 
 public class Calificacion
 {
     public string Nombre;
+    public string Sexo;
     public decimal Nota;
 
     // public Calificacion(string nombre, decimal nota)
@@ -134,7 +175,8 @@ public class Calificacion
         var columns = row.Split(',');
         return new Calificacion()
         {
-            Nombre = columns[0],
+            Sexo = columns[0],
+            Nombre = columns[1],
             Nota = decimal.Parse(columns[1])
         };
 
@@ -145,7 +187,7 @@ public class Sistema
 {
     IRepositorio Repositorio;
 
-    List<Calificacion> Notas;
+    public List<Calificacion> Notas;
 
     public Sistema(IRepositorio repositorio)
     {
