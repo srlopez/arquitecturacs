@@ -1,4 +1,0 @@
-
-
-Parse CSV
-https://dev.to/hemantgovekar/how-to-parse-a-csv-file-from-linq-c-3196
