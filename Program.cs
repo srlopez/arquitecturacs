@@ -141,11 +141,14 @@ public class Controlador
    
     public void InformeB()
     {
-        vista.mostrarObjetos("informe B", sistema.Notas);
+        InformeGenerico("informe B", sistema.Notas, AprobadosH);
     }
 
     private void InformeGenerico(string titulo, List<Calificacion> lista, Predicado<Calificacion> esValido ){
-        List<Calificacion> selecion =  lista.Find(esValido);
+        List<Calificacion> selecion = new List<Calificacion>();
+        foreach(Calificacion cal in lista){
+            if(esValido(cal)) selecion.Add(cal);
+        };
         vista.mostrarObjetos(titulo,selecion);
     }
 
