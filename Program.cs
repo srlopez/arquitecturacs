@@ -1,6 +1,7 @@
 ﻿/*
 PROGRAMACION CON ARQUITECTURA 
 CON REPOSITORIO E INYECCION DE PREDICADO
+https://zetcode.com/csharp/predicate/
 
 Clases con namespaces
 Aplicacion.Negocio.Sistema
@@ -151,6 +152,7 @@ namespace Aplicacion
                 Console.WriteLine($"La media de la notas es: {sistema.CalculoDeLaMedia():0.00}");
 
             public delegate bool MiPredicado<in T>(T obj);
+            // https://zetcode.com/csharp/predicate/
             private static bool AprobadosH(Calificacion c) => c.Sexo == "H" && c.Nota >= 5;
             private static bool Suspensos(Calificacion c) => c.Nota < 5;
             public void InformeSuspensos() =>
