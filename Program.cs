@@ -135,7 +135,7 @@ public class Controlador
         vista.mostrarObjetos("inforem A", sistema.Notas);
     }
 
-        delegate bool Predicate<in T>(T obj);
+    public delegate bool Predicado<in T>(T obj);
     private static bool AprobadosH(Calificacion c) =>  c.Sexo=="H" && c.Nota>=5;
     private static bool Suspensos(Calificacion c) => c.Nota<5;
    
@@ -144,8 +144,9 @@ public class Controlador
         vista.mostrarObjetos("informe B", sistema.Notas);
     }
 
-    private void InformeGenerico(string titulo, List<Calificacion> lista){
-
+    private void InformeGenerico(string titulo, List<Calificacion> lista, Predicado<Calificacion> esValido ){
+        List<Calificacion> selecion =  lista.Find(esValido);
+        vista.mostrarObjetos(titulo,selecion);
     }
 
 /*
