@@ -20,31 +20,39 @@ namespace Aplicacion
 {
     using Services;
     using Negocio;
-    using Ui.Console;
+    using UI.Console;
     class Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Componemos la aplición");
-
+            Console.WriteLine("> Componemos la aplición");
             var repositorio = new RepositorioCSV();
             var sistema = new Sistema(repositorio);
             var vista = new Vista();
             var controlador = new Controlador(sistema, vista);
+
+            Console.WriteLine("> Lanzamos la aplición");
             controlador.Run();
 
-            Console.WriteLine("Fin");
+            Console.WriteLine("> Aplicación finalizada");
         }
     }
 
-    namespace Ui.Console
+    namespace UI.Console
     {
         using System;
         using Negocio.Modelos;
 
         public class Vista
         {
-            public int obtenerEntero(string prompt)
+            public void LimpiarPantalla() => Console.Clear();
+            public void MuestraLineCR(Object msg)
+            {
+                Console.WriteLine(msg.ToString());
+                Console.ReadLine();
+            }
+            public void MuestraLine(Object msg) => Console.WriteLine(msg.ToString());
+            public int ObtenerEntero(string prompt)
             {
                 int entero = int.MinValue;
                 string input = "";
@@ -77,8 +85,7 @@ namespace Aplicacion
                 }
                 return entero;
             }
-
-            public void mostrarObjetos<T>(string titulo, List<T> opciones)
+            public void MostrarObjetos<T>(string titulo, List<T> opciones)
             {
                 Console.WriteLine($"   > {titulo}");
                 Console.WriteLine();
@@ -88,10 +95,10 @@ namespace Aplicacion
                 }
                 Console.WriteLine();
             }
-            public int obtenerOpcion<T>(string titulo, List<T> datos, string prompt)
+            public int ObtenerOpcion<T>(string titulo, List<T> datos, string prompt)
             {
-                mostrarObjetos(titulo, datos);
-                return obtenerEntero(prompt);
+                MostrarObjetos(titulo, datos);
+                return ObtenerEntero(prompt);
             }
         }
         public class Controlador
@@ -104,6 +111,10 @@ namespace Aplicacion
        "Informe Todos",
        };
 
+            /*
+            Podríamos implementar en lugar de menu de string un diccionario de funciones            
+            private Dictionary<string,Action> casosDeUso; 
+            */
             private Sistema sistema;
             private Vista vista;
 
@@ -111,21 +122,38 @@ namespace Aplicacion
             {
                 this.sistema = sistema;
                 this.vista = vista;
+                /*
+                Notas: 
+                El diccionario de funciones funciona perfectamente
+                Habría que adaptar el ObtenerOpcion para que nos devuelva un key, 
+
+                this.casosDeUso = new Dictionary<string,Action>(){
+                    { "Obtener la media de las notas", obtenerLaMedia },
+                    { "Obtener la mejor nota",()=>vista.MuestraLine($"Caso de uso no implementado") },
+                    { "Informe Suspensos", InformeSuspensos },
+                    { "Informe Aprobados H", InformeAprobadosH },
+                    { "Informe Todos", InformeTodos },
+                };
+
+                Se invocaría así:
+                casosDeUso[key].Invoke();
+                */
             }
 
             public void Run()
             {
                 while (true)
                 {
-                    Console.Clear();
-                    var opcion = vista.obtenerOpcion("Menu de Opciones", menu, "Seleciona una opción");
+                    vista.LimpiarPantalla();
+                    var opcion = vista.ObtenerOpcion("Menu de Opciones", menu, "Seleciona una opción");
                     switch (opcion)
                     {
                         case 1:
                             obtenerLaMedia();
+                            //casosDeUso[menu.ElementAt(0)].Invoke();
                             break;
                         case 2:
-                            Console.WriteLine($"No implementado");
+                            vista.MuestraLine($"Caso de uso no implementado");
                             break;
                         case 3:
                             InformeSuspensos();
@@ -141,37 +169,31 @@ namespace Aplicacion
                             // Salimos 
                             return;
                     }
-                    Console.WriteLine("Pulsa Return para continuar");
-                    Console.ReadLine();
+                    vista.MuestraLineCR("Pulsa Return para continuar");
                 }
             }
 
-
             // CASOS DE USO
             public void obtenerLaMedia() =>
-                Console.WriteLine($"La media de la notas es: {sistema.CalculoDeLaMedia():0.00}");
-
-            public delegate bool MiPredicado<in T>(T obj);
+                 vista.MuestraLine($"La media de la notas es: {sistema.CalculoDeLaMedia():0.00}");
+            private delegate bool MiPredicado<in T>(T obj);
             // https://zetcode.com/csharp/predicate/
             private static bool AprobadosH(Calificacion c) => c.Sexo == "H" && c.Nota >= 5;
             private static bool Suspensos(Calificacion c) => c.Nota < 5;
             public void InformeSuspensos() =>
                 InformeGenerico("Informe Aprobados Hombres", sistema.LasNotas(), Suspensos);
-
             public void InformeAprobadosH() =>
                 InformeGenerico("Informe Aprobados Hombres", sistema.LasNotas(), AprobadosH);
-
             public void InformeTodos() =>
-                vista.mostrarObjetos("Informe Suspensos", sistema.LasNotas());
-
+                vista.MostrarObjetos("Informe Suspensos", sistema.LasNotas());
             private void InformeGenerico(string titulo, List<Calificacion> lista, MiPredicado<Calificacion> esValido)
             {
-                List<Calificacion> selecion = new List<Calificacion>();
+                List<Calificacion> calSeleccionadas = new List<Calificacion>();
                 foreach (Calificacion cal in lista)
                 {
-                    if (esValido(cal)) selecion.Add(cal);
+                    if (esValido(cal)) calSeleccionadas.Add(cal);
                 };
-                vista.mostrarObjetos(titulo, selecion);
+                vista.MostrarObjetos(titulo, calSeleccionadas);
             }
         }
     }
@@ -181,29 +203,31 @@ namespace Aplicacion
         {
             public class Calificacion
             {
-                public string Nombre;
-                public string Sexo;
-                public decimal Nota;
-
-                // public Calificacion(string sexo, string nombre, decimal nota)
-                // {
-                //     Nombre = nombre;
-                //     Sexo = sexo;
-                //     Nota = nota;
-                // }
+                public string Nombre { get; set; }
+                public string Sexo { get; set; }
+                public decimal Nota { get; set; }
+                public Calificacion(string sexo, string nombre, decimal nota)
+                {
+                    Nombre = nombre;
+                    Sexo = sexo;
+                    Nota = nota;
+                }
 
                 public override string ToString() => $"({Nombre}, {Nota})";
-
                 internal static Calificacion ParseRow(string row)
                 {
-                    //Console.WriteLine(row);
                     var columns = row.Split(',');
-                    return new Calificacion()
-                    {
-                        Sexo = columns[0],
-                        Nombre = columns[1],
-                        Nota = decimal.Parse(columns[2])
-                    };
+                    // return new Calificacion
+                    // {
+                    //     Sexo = columns[0],
+                    //     Nombre = columns[1],
+                    //     Nota = decimal.Parse(columns[2])
+                    // };
+                    return new Calificacion( 
+                        nombre: columns[1],
+                        sexo: columns[0],  
+                        nota: decimal.Parse(columns[2])
+                    );
 
                 }
             }
