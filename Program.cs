@@ -138,8 +138,7 @@ namespace Aplicacion
             // CASOS DE USO
             public void obtenerLaMedia() =>
                  vista.MuestraLine($"La media de la notas es: {sistema.CalculoDeLaMedia():0.00}");
-            private delegate bool MiPredicado<in T>(T obj);
-            // https://zetcode.com/csharp/predicate/
+
             private static bool AprobadosH(Calificacion c) => c.Sexo == "H" && c.Nota >= 5;
             private static bool Suspensos(Calificacion c) => c.Nota < 5;
             public void InformeSuspensos() =>
@@ -148,7 +147,22 @@ namespace Aplicacion
                 InformeGenerico("Informe Aprobados Hombres", sistema.LasNotas(), AprobadosH);
             public void InformeTodos() =>
                 vista.MostrarObjetos("Informe Suspensos", sistema.LasNotas());
-            private void InformeGenerico(string titulo, List<Calificacion> lista, MiPredicado<Calificacion> esValido)
+            private void InformeGenerico(string titulo, List<Calificacion> lista, Func<Calificacion, bool> esValido)
+            {
+                List<Calificacion> calSeleccionadas = new List<Calificacion>();
+                foreach (Calificacion cal in lista)
+                {
+                    if (esValido.Invoke(cal)) calSeleccionadas.Add(cal);
+                };
+                vista.MostrarObjetos(titulo, calSeleccionadas);
+            }
+
+            /*     
+            private delegate bool MiPredicado<in T>(T obj);
+            // https://zetcode.com/csharp/predicate/
+            // https://stackoverflow.com/questions/8099631/how-to-return-value-from-action
+                   
+            private void InformeGenericoD(string titulo, List<Calificacion> lista, MiPredicado<Calificacion> esValido)
             {
                 List<Calificacion> calSeleccionadas = new List<Calificacion>();
                 foreach (Calificacion cal in lista)
@@ -157,6 +171,8 @@ namespace Aplicacion
                 };
                 vista.MostrarObjetos(titulo, calSeleccionadas);
             }
+            */
+
         }
     }
     namespace Negocio
