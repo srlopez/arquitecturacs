@@ -99,7 +99,10 @@ namespace Aplicacion
             {
                 MostrarObjetos(titulo, datos);
                 var index = ObtenerEntero(prompt);
-                var obj = index != int.MinValue ? datos.ElementAt(index - 1) : default(T);
+                var obj = default(T);
+                if (index != int.MinValue)
+                    obj = datos.ElementAt(--index);
+
                 return (index, obj);
             }
         }

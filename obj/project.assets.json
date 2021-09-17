@@ -8,19 +8,19 @@
     "net5.0": []
   },
   "packageFolders": {
-    "C:\\Users\\Santi\\.nuget\\packages\\": {}
+    "/home/santi/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Santi\\Dev\\SERV\\arq\\arquitecturacs.csproj",
+      "projectUniqueName": "/home/santi/dev/net/arquitecturacs/arquitecturacs.csproj",
       "projectName": "arquitecturacs",
-      "projectPath": "C:\\Users\\Santi\\Dev\\SERV\\arq\\arquitecturacs.csproj",
-      "packagesPath": "C:\\Users\\Santi\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Santi\\Dev\\SERV\\arq\\obj\\",
+      "projectPath": "/home/santi/dev/net/arquitecturacs/arquitecturacs.csproj",
+      "packagesPath": "/home/santi/.nuget/packages/",
+      "outputPath": "/home/santi/dev/net/arquitecturacs/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\Santi\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "/home/santi/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net5.0"
@@ -58,7 +58,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.400\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/5.0.400/RuntimeIdentifierGraph.json"
       }
     }
   }
