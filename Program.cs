@@ -95,49 +95,31 @@ namespace Aplicacion
                 }
                 Console.WriteLine();
             }
-            public int ObtenerOpcion<T>(string titulo, List<T> datos, string prompt)
+            public (int, T) ObtenerOpcion<T>(string titulo, List<T> datos, string prompt)
             {
                 MostrarObjetos(titulo, datos);
-                return ObtenerEntero(prompt);
+                var index = ObtenerEntero(prompt);
+                var obj = index != int.MinValue ? datos.ElementAt(index - 1) : default(T);
+                return (index, obj);
             }
         }
         public class Controlador
         {
-            List<String> menu = new List<String>{
-       "Obtener la media de las notas",
-       "Obtener la mejor nota",
-       "Informe Suspensos",
-       "Informe Aprobados H",
-       "Informe Todos",
-       };
-
-            /*
-            Podríamos implementar en lugar de menu de string un diccionario de funciones            
-            private Dictionary<string,Action> casosDeUso; 
-            */
             private Sistema sistema;
             private Vista vista;
+            private Dictionary<string, Action> casosDeUso;
 
             public Controlador(Sistema sistema, Vista vista)
             {
                 this.sistema = sistema;
                 this.vista = vista;
-                /*
-                Notas: 
-                El diccionario de funciones funciona perfectamente
-                Habría que adaptar el ObtenerOpcion para que nos devuelva un key, 
-
-                this.casosDeUso = new Dictionary<string,Action>(){
+                this.casosDeUso = new Dictionary<string, Action>(){
                     { "Obtener la media de las notas", obtenerLaMedia },
                     { "Obtener la mejor nota",()=>vista.MuestraLine($"Caso de uso no implementado") },
                     { "Informe Suspensos", InformeSuspensos },
                     { "Informe Aprobados H", InformeAprobadosH },
                     { "Informe Todos", InformeTodos },
                 };
-
-                Se invocaría así:
-                casosDeUso[key].Invoke();
-                */
             }
 
             public void Run()
@@ -145,30 +127,10 @@ namespace Aplicacion
                 while (true)
                 {
                     vista.LimpiarPantalla();
-                    var opcion = vista.ObtenerOpcion("Menu de Opciones", menu, "Seleciona una opción");
-                    switch (opcion)
-                    {
-                        case 1:
-                            obtenerLaMedia();
-                            //casosDeUso[menu.ElementAt(0)].Invoke();
-                            break;
-                        case 2:
-                            vista.MuestraLine($"Caso de uso no implementado");
-                            break;
-                        case 3:
-                            InformeSuspensos();
-                            break;
-                        case 4:
-                            InformeAprobadosH();
-                            break;
-                        case 5:
-                            InformeTodos();
-                            break;
-
-                        case int.MinValue:
-                            // Salimos 
-                            return;
-                    }
+                    var menu = casosDeUso.Keys.ToList<String>();
+                    (var opcion, var key) = vista.ObtenerOpcion("Menu de Opciones", menu, "Seleciona una opción");
+                    if (opcion == int.MinValue) return;
+                    casosDeUso[key].Invoke();
                     vista.MuestraLineCR("Pulsa Return para continuar");
                 }
             }
@@ -223,9 +185,9 @@ namespace Aplicacion
                     //     Nombre = columns[1],
                     //     Nota = decimal.Parse(columns[2])
                     // };
-                    return new Calificacion( 
+                    return new Calificacion(
                         nombre: columns[1],
-                        sexo: columns[0],  
+                        sexo: columns[0],
                         nota: decimal.Parse(columns[2])
                     );
 
