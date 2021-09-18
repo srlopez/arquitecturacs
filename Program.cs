@@ -15,6 +15,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace Aplicacion
 {
@@ -52,42 +53,30 @@ namespace Aplicacion
                 Console.ReadLine();
             }
             public void MuestraLine(Object msg) => Console.WriteLine(msg.ToString());
-            public int ObtenerEntero(string prompt)
+
+            // c# Generics
+            public T ObtenerInput<T>(string prompt)
             {
-                int entero = int.MinValue;
-                string input = "";
-                bool entradaIncorrecta = true;
-                while (entradaIncorrecta)
+                while (true)
                 {
+                    Console.Write($"   {prompt.Trim()}: ");
+                    var input = Console.ReadLine();
+                    if (input.ToLower().Trim() == "fin") input = int.MinValue.ToString();
                     try
                     {
-                        Console.Write($"   {prompt.Trim()}: ");
-                        input = Console.ReadLine();
-                        if (input != "fin")
-                        {
-                            entero = int.Parse(input);
-                            entradaIncorrecta = false;
-                        }
-                        else
-                        {
-                            entero = int.MinValue;
-                            entradaIncorrecta = false;
-                        }
+                        // c# Reflexion
+                        var valor = TypeDescriptor.GetConverter(typeof(T)).ConvertFromString(input);
+                        return (T)valor;
                     }
-                    catch (FormatException)
+                    catch (Exception e)
                     {
-                        ;
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        throw;
+                        Console.WriteLine($"Error: {e.Message}");
                     }
                 }
-                return entero;
             }
             public void MostrarObjetos<T>(string titulo, List<T> opciones)
             {
-                Console.WriteLine($"   > {titulo}");
+                Console.WriteLine($"   [ {titulo} ]");
                 Console.WriteLine();
                 for (int i = 0; i < opciones.Count; i++)
                 {
@@ -98,12 +87,18 @@ namespace Aplicacion
             public (int, T) ObtenerOpcion<T>(string titulo, List<T> datos, string prompt)
             {
                 MostrarObjetos(titulo, datos);
-                var index = ObtenerEntero(prompt);
-                var obj = default(T);
-                if (index != int.MinValue)
-                    obj = datos.ElementAt(--index);
-
-                return (index, obj);
+                int input = int.MaxValue;
+                while (input < 1 || input > datos.Count)
+                {
+                    input = ObtenerInput<int>(prompt);
+                    if (input == int.MinValue) break;
+                };
+                // c# pattern matching de programación funcional
+                return input switch
+                {
+                    int.MinValue => (input, default(T)),
+                    _ => (input - 1, datos.ElementAt(input - 1))
+                };
             }
         }
         public class Controlador
@@ -116,23 +111,29 @@ namespace Aplicacion
             {
                 this.sistema = sistema;
                 this.vista = vista;
+                // c# Action vs Func: programación funcional
+                // c# Dictionary Colecion generica
                 this.casosDeUso = new Dictionary<string, Action>(){
                     { "Obtener la media de las notas", obtenerLaMedia },
                     { "Obtener la mejor nota",()=>vista.MuestraLine($"Caso de uso no implementado") },
                     { "Informe Suspensos", InformeSuspensos },
                     { "Informe Aprobados H", InformeAprobadosH },
                     { "Informe Todos", InformeTodos },
+                    { "Pruebas genericas de inut", Pruebas },
                 };
             }
 
             public void Run()
             {
+                vista.LimpiarPantalla();
+                // Acceso a las Claves dels diccionario
+                var menu = casosDeUso.Keys.ToList<String>();
                 while (true)
                 {
-                    vista.LimpiarPantalla();
-                    var menu = casosDeUso.Keys.ToList<String>();
-                    (var opcion, var key) = vista.ObtenerOpcion("Menu de Opciones", menu, "Seleciona una opción");
+                    // c# Deconstrucción de tuplas para obtener una opcion
+                    (var opcion, var key) = vista.ObtenerOpcion("Menu de Usuario", menu, "Seleciona una opción");
                     if (opcion == int.MinValue) return;
+                    // Ejecución de la opción escogida
                     casosDeUso[key].Invoke();
                     vista.MuestraLineCR("Pulsa Return para continuar");
                 }
@@ -145,7 +146,10 @@ namespace Aplicacion
             private static bool AprobadosH(Calificacion c) => c.Sexo == "H" && c.Nota >= 5;
             private static bool Suspensos(Calificacion c) => c.Nota < 5;
             public void InformeSuspensos() =>
-                InformeGenerico("Informe Aprobados Hombres", sistema.LasNotas(), Suspensos);
+                //InformeGenerico("Informe Aprobados Hombres", sistema.LasNotas(), Suspensos);
+                // C# Lambda como parametros: programacion funcional
+                InformeGenerico("Informe Aprobados Hombres", sistema.LasNotas(), (Calificacion c) => c.Nota < 5);
+
             public void InformeAprobadosH() =>
                 InformeGenerico("Informe Aprobados Hombres", sistema.LasNotas(), AprobadosH);
             public void InformeTodos() =>
@@ -160,11 +164,24 @@ namespace Aplicacion
                 vista.MostrarObjetos(titulo, calSeleccionadas);
             }
 
+            public void Pruebas()
+            {
+                var s = vista.ObtenerInput<string>("un string");
+                Console.WriteLine($"{s} {s==int.MinValue.ToString()}");
+                var d = vista.ObtenerInput<decimal>("un decimal");
+                Console.WriteLine($"{d} {d==int.MinValue}");
+                var f = vista.ObtenerInput<float>("un float");
+                Console.WriteLine($"{f} {f==int.MinValue}");
+                var i = vista.ObtenerInput<int>("un int");
+                Console.WriteLine($"{i} {i==int.MinValue}");
+            }
+
             /*     
-            private delegate bool MiPredicado<in T>(T obj);
             // https://zetcode.com/csharp/predicate/
             // https://stackoverflow.com/questions/8099631/how-to-return-value-from-action
-                   
+
+            private delegate bool MiPredicado<in T>(T obj);
+
             private void InformeGenericoD(string titulo, List<Calificacion> lista, MiPredicado<Calificacion> esValido)
             {
                 List<Calificacion> calSeleccionadas = new List<Calificacion>();
