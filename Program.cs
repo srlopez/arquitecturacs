@@ -16,6 +16,7 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 
 namespace Aplicacion
 {
@@ -167,13 +168,13 @@ namespace Aplicacion
             public void Pruebas()
             {
                 var s = vista.ObtenerInput<string>("un string");
-                Console.WriteLine($"{s} {s==int.MinValue.ToString()}");
+                Console.WriteLine($"{s} {s == int.MinValue.ToString()}");
                 var d = vista.ObtenerInput<decimal>("un decimal");
-                Console.WriteLine($"{d} {d==int.MinValue}");
+                Console.WriteLine($"{d} {d == int.MinValue}");
                 var f = vista.ObtenerInput<float>("un float");
-                Console.WriteLine($"{f} {f==int.MinValue}");
+                Console.WriteLine($"{f} {f == int.MinValue}");
                 var i = vista.ObtenerInput<int>("un int");
-                Console.WriteLine($"{i} {i==int.MinValue}");
+                Console.WriteLine($"{i} {i == int.MinValue}");
             }
 
             /*     
@@ -214,6 +215,8 @@ namespace Aplicacion
                 public override string ToString() => $"({Nombre}, {Nota})";
                 internal static Calificacion ParseRow(string row)
                 {
+                    NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
+
                     var columns = row.Split(',');
                     // return new Calificacion
                     // {
@@ -224,7 +227,7 @@ namespace Aplicacion
                     return new Calificacion(
                         nombre: columns[1],
                         sexo: columns[0],
-                        nota: decimal.Parse(columns[2])
+                        nota: decimal.Parse(columns[2], nfi)
                     );
 
                 }
