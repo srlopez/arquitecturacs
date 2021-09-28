@@ -27,16 +27,16 @@ namespace Aplicacion
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("> Componemos la aplición");
+            Console.WriteLine("> Componemos la aplición.");
             var repositorio = new RepositorioCSV();
             var sistema = new Sistema(repositorio);
             var vista = new Vista();
             var controlador = new Controlador(sistema, vista);
 
-            Console.WriteLine("> Lanzamos la aplición");
+            Console.WriteLine("> Lanzamos la aplición.");
             controlador.Run();
 
-            Console.WriteLine("> Aplicación finalizada");
+            Console.WriteLine("> Aplicación finalizada.");
         }
     }
 
