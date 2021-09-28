@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "uQAL5qVKZKBvdTtrYRQ9V2gU2efqS+xlaKywO2J60Js5FwYlYvoRN4xkcO6ea4oN5PqwO03Txr+kga79wdIvkQ==",
+  "dgSpecHash": "bt0fXJja8IFEzRCxHsSn2/KEInLnt+k9uSGPWY8eu6pmXi4Wh6Z7JWH1J6YAP0J/Lo0qoee6nXBpy70sbclH0g==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Santi\\Dev\\SERV\\arq\\arquitecturacs.csproj",
+  "projectFilePath": "/home/santi/dev/net/arquitecturacs/arquitecturacs.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

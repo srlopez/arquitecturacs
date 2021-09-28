@@ -13,6 +13,8 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using System.Globalization;
+
 
 Console.WriteLine("Empezamos");
 
@@ -130,12 +132,14 @@ public class Calificacion
 
     internal static Calificacion ParseRow(string row)
     {
+        NumberFormatInfo nfi = new CultureInfo( "en-US", false ).NumberFormat;
+
         //Console.WriteLine(row);
         var columns = row.Split(',');
         return new Calificacion()
         {
             Nombre = columns[0],
-            Nota = decimal.Parse(columns[1])
+            Nota = decimal.Parse(columns[1], nfi)
         };
 
     }
