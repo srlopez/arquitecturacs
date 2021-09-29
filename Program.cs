@@ -163,6 +163,8 @@ namespace Aplicacion
                     if (esValido.Invoke(cal)) calSeleccionadas.Add(cal);
                 };
                 vista.MostrarObjetos(titulo, calSeleccionadas);
+                // en una linea sería
+                // vista.MostrarObjetos(titulo, lista.Where(esValido).ToList());
             }
 
             public void Pruebas()
