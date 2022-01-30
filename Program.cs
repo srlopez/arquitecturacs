@@ -1,4 +1,5 @@
 ﻿#define IoC // Directiva para compilar utilizando el Contenedor de Dependencias
+            // Cambiandola por NoIoC onvertimos el programa en una tiípica arquitectura de Tres Capas
 
 using System;
 using System.IO;
@@ -15,7 +16,9 @@ namespace Aplicacion
     using Negocio;
     using UI.Console;
     using Core;
-
+    /*
+     Entrypoint
+    */
     class Program
     {
         static void Main(string[] args)
@@ -39,7 +42,12 @@ namespace Aplicacion
         }
     }
 
+    /*
+    Capa de Presentación/UserInterface
+    Separamos la Vista del Controlador
+    */
     namespace UI.Console
+
     {
         using Negocio.Modelos;
 
@@ -116,6 +124,7 @@ namespace Aplicacion
                     { "Informe Aprobados por Sexo", InformeAprobadosXSexo },
                     { "Informe Todos", InformeTodos },
                     { "Informe por Alumno", InformesXAlumno },
+                    { "Porcentaje por Sexo de Alumnos", PorcentajeXSexo}
                 };
             }
             // CICLO DE APLICACIÓN
@@ -127,7 +136,7 @@ namespace Aplicacion
                 while (true)
                     try
                     {
-                        var opcion = vista.ObtenerOpcion("Menu de Usuario", menu, "Seleciona una opción");
+                        var opcion = vista.ObtenerOpcion("Gestor de Notas", menu, "Seleciona una opción");
                         casosDeUso[opcion].Invoke();
                         vista.MostrarLineaCR("Pulsa Return para continuar");
                     }
@@ -150,7 +159,6 @@ namespace Aplicacion
                 // C# Lambda reconstruido
                 InformeGenerico($"Informe Aprobados {sexo}", sistema.Notas, (Calificacion cal) => AprobadosXSexo(cal, sexo));
             }
-
             private void InformeGenerico(string titulo, List<Calificacion> lista, Func<Calificacion, bool> esValido)
             {
                 List<Calificacion> calSeleccionadas = new List<Calificacion>();
@@ -204,6 +212,13 @@ namespace Aplicacion
                     return;
                 }
             }
+            private void PorcentajeXSexo()
+            {
+                var h = sistema.PorcentajeXSexo("H");
+                var m = sistema.PorcentajeXSexo("M");
+                vista.MostrarLinea($"H:  {h}");
+                vista.MostrarLinea($"M:  {m}");
+            }
             /*  
             Con predicado   
             // https://zetcode.com/csharp/predicate/
@@ -224,6 +239,10 @@ namespace Aplicacion
 
         }
     }
+    /*
+    Capa de Negocio/Bussness Logic
+    Cubre la lógica principal de la aplicación.
+    */
     namespace Negocio
     {
         using Modelos;
@@ -244,14 +263,12 @@ namespace Aplicacion
 
             //Caché
             public List<Calificacion> Notas { get; }
-
             public Sistema(IRepositorio repositorio)
             {
                 Repositorio = repositorio;
                 Repositorio.Inicializar();
                 Notas = Repositorio.CargarCalificaciones();
             }
-
             public void CerrarSistema()
             {
                 Repositorio.GuardarCalificaciones(Notas);
@@ -263,15 +280,20 @@ namespace Aplicacion
                 // función interna
                 decimal CalculoDeLaSuma(decimal[] datos) => datos.Sum();
             }
-            public string ContadorSexo(string sexo)
+            public string PorcentajeXSexo(string sexo)
             {
-                var c = Notas.Select(calificacion => calificacion.Sexo == sexo).Count();
-                return $"{c}/{Notas.Count()}";
+                double cuenta = Notas.Where(calificacion => calificacion.Sexo == sexo).Count();
+                var total = Notas.Count();
+                return $"{cuenta}/{total}  {cuenta * 100 / total:#.00}%";
             }
             public void AñadirNota(Calificacion cal) =>
                 Notas.Add(cal);
         }
     }
+    /*
+    Capa de Datos
+    Contiene los servicios de acceso a datos
+    */
     namespace Servicios
     {
         using Negocio.Modelos;
@@ -288,7 +310,7 @@ namespace Aplicacion
             string datafile;
             void IRepositorio.Inicializar()
             {
-                this.datafile = "notas.csv";
+                datafile = "notas.csv";
             }
             List<Calificacion> IRepositorio.CargarCalificaciones()
             {
@@ -296,33 +318,36 @@ namespace Aplicacion
                     .Skip(1)
                     .Where(row => row.Length > 0)
                     .Select(ParseRow).ToList();
+                // DTO=>Modelo
+                Calificacion ParseRow(string row)
+                {
+                    NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
+
+                    var columns = row.Split(',');
+                    return new Calificacion
+                    {
+                        Sexo = columns[0],
+                        Nombre = columns[1],
+                        Nota = decimal.Parse(columns[2])
+                    };
+                }
             }
             void IRepositorio.GuardarCalificaciones(List<Calificacion> data)
             {
-                var lines = new List<string> { "X,Nombre,Nota" };
-                lines.AddRange(data.Select(i => $"{i.Sexo},{i.Nombre},{i.Nota}"));
-
+                var lines = new List<string> { "SX,NOMBRE,NOTA" };
+                lines.AddRange(data.Select(ToDTO));
                 File.WriteAllLines(datafile, lines);
+                // Modelo=>DTO
+                string ToDTO(Calificacion item) => $"{item.Sexo},{item.Nombre},{item.Nota}";
             }
-            Calificacion ParseRow(string row)
-            {
-                NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
 
-                var columns = row.Split(',');
-                return new Calificacion
-                {
-                    Sexo = columns[0],
-                    Nombre = columns[1],
-                    Nota = decimal.Parse(columns[2])
-                };
-            }
         }
         public class RepositorioJSON : IRepositorio
         {
             string datafile;
             void IRepositorio.Inicializar()
             {
-                this.datafile = "notas.json";
+                datafile = "notas.json";
             }
             List<Calificacion> IRepositorio.CargarCalificaciones()
             {
@@ -334,10 +359,14 @@ namespace Aplicacion
                 var options = new JsonSerializerOptions { WriteIndented = true };
                 var json = JsonSerializer.Serialize(data, options);
                 File.WriteAllText(datafile, json);
-
             }
         }
     }
+    /*
+    Core. Utilidades típicas de una aplicación
+    Logger, etc..
+    IoC
+    */
     namespace Core
     {
         // Static para referenciarlo desde todos los componentes
