@@ -1,18 +1,4 @@
-﻿/*
-PROGRAMACION CON ARQUITECTURA 
-Para mostrar la inyección de dependencias
-EL contenedor de dependencias
-La inyección de predicado
-
-Clases con namespaces
-Aplicacion.Negocio.Sistema
-Aplicacion.Negocio.Modelos.Calificacion
-Aplicacion.UI.Vista
-Aplicacion.UI.Controlador
-Aplicacion.Services.Repositorio
-AppSytem.IoC
-*/
-#define IoC
+﻿#define IoC
 
 using System;
 using System.IO;
