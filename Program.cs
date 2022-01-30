@@ -1,12 +1,11 @@
 ﻿#define IoC // Directiva para compilar utilizando el Contenedor de Dependencias
-            // Cambiandola por NoIoC onvertimos el programa en una tiípica arquitectura de Tres Capas
+// Cambiandola por NoIoC onvertimos el programa en una tiípica arquitectura de Tres Capas
 
 using System;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Globalization;
 using static System.Console;
 
@@ -53,26 +52,30 @@ namespace Aplicacion
 
         public class Vista
         {
+            string cancelInput = "fin";
             public void LimpiarPantalla() => Clear();
             public void MostrarLineaCR(Object msg)
             {
-                Write(msg.ToString());
+                Write(msg);
                 ReadKey();
             }
-            public void MostrarLinea(Object msg) => WriteLine(msg.ToString());
+            public void MostrarLinea(Object msg) => WriteLine(msg);
             // c# Generics
-            public T ObtenerInput<T>(string peticion)
+            public T ObtenerInput<T>(string prompt)
             {
                 while (true)
                 {
-                    Write($"   {peticion.Trim()}: ");
+                    Write($"   {prompt.Trim()}: ");
                     var input = ReadLine();
                     // Generamos una Excepción
-                    if (input.ToLower().Trim() == "fin") throw new Exception("Entrada cancelada por el usuario");
+                    if (input.ToLower().Trim() == cancelInput)
+                        throw new Exception("Entrada cancelada por el usuario");
                     try
                     {
-                        // c# Reflexion
-                        var valor = TypeDescriptor.GetConverter(typeof(T)).ConvertFromString(input);
+                        // c# Reflexion + Librería
+                        var valor = System.ComponentModel.TypeDescriptor
+                                    .GetConverter(typeof(T))
+                                    .ConvertFromString(input);
                         return (T)valor;
                     }
                     // Captura y control de la excepción si falla el conversor
@@ -82,17 +85,15 @@ namespace Aplicacion
                     }
                 }
             }
-            public void MostrarLista<T>(string titulo, List<T> opciones)
+            public void MostrarLista<T>(string titulo, List<T> datos)
             {
                 WriteLine($"   [ {titulo} ]");
                 WriteLine();
-                for (int i = 0; i < opciones.Count; i++)
-                {
-                    WriteLine($"   {i + 1:##}.- {opciones[i].ToString()}");
-                }
+                var i = 0;
+                datos.ForEach(item => WriteLine($"   {++i:##}.- {item}"));
                 WriteLine();
             }
-            public T ObtenerOpcion<T>(string titulo, List<T> datos, string prompt)
+            public T ObtenerElemento<T>(string titulo, List<T> datos, string prompt)
             {
                 MostrarLista(titulo, datos);
                 int input = 0;
@@ -101,7 +102,7 @@ namespace Aplicacion
                     {
                         input = ObtenerInput<int>(prompt);
                     }
-                    catch { throw; }; //Relanzamos la excepción
+                    catch { throw; }; //Relanzamos la excepción cancelInput
                 return datos.ElementAt(input - 1);
             }
         }
@@ -136,7 +137,7 @@ namespace Aplicacion
                 while (true)
                     try
                     {
-                        var opcion = vista.ObtenerOpcion("Gestor de Notas", menu, "Seleciona una opción");
+                        var opcion = vista.ObtenerElemento("Gestor de Notas", menu, "Seleciona una opción");
                         casosDeUso[opcion].Invoke();
                         vista.MostrarLineaCR("Pulsa Return para continuar");
                     }
@@ -253,14 +254,13 @@ namespace Aplicacion
                 public string Nombre { get; set; }
                 public string Sexo { get; set; }
                 public decimal Nota { get; set; }
-
+                // Muy importante. ToString es nuestro ModelView/DTO para vista
                 public override string ToString() => $"({Nombre}, {Nota})";
             }
         }
         public class Sistema
         {
             IRepositorio Repositorio;
-
             //Caché
             public List<Calificacion> Notas { get; }
             public Sistema(IRepositorio repositorio)

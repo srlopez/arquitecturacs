@@ -16,7 +16,7 @@ Para mostrar:
 Y todo en el Program.cs 🧐🤔🤦
 
 ## La aplicación  
-Nos piden solucionar el problema de un profesor de Arte (_suponemos que la informática le queda lejos_) que desea obtener información sobre un determinado exámen, como la media, la mejor y peor nota, porcentajes de suspensos, y eso mismo segmentado entre chicos y chicas.   
+Nos piden solucionar el problema de un profesor de Arte (_suponemos que la informática le queda lejos_) que desea obtener información sobre un determinado exámen, como la media, la mejor y peor nota, porcentajes de suspensos, etc. Y eso mismo segmentado entre chicos y chicas.   
 
 Nos muestra una lista de las notas:  
 ``` 
