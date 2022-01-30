@@ -1,4 +1,4 @@
-﻿#define IoC
+﻿#define IoC // Directiva para compilar utilizando el Contenedor de Dependencias
 
 using System;
 using System.IO;
@@ -15,23 +15,26 @@ namespace Aplicacion
     using Negocio;
     using UI.Console;
     using Core;
+
     class Program
     {
         static void Main(string[] args)
         {
-#if IoCa
+#if IoC
+            // Utilizando el IoC, como arquitectura de servicios
             IoC.Register<IRepositorio, RepositorioJSON>();
             IoC.Register<Sistema>();
             IoC.Register<Vista>();
             IoC.Register<Controlador>();
             var controlador = IoC.Create<Controlador>();
-
 #else
+            // Arquitectura en Tres Capas
             var repositorio = new RepositorioCSV();
             var sistema = new Sistema(repositorio);
             var vista = new Vista();
             var controlador = new Controlador(sistema, vista);
 #endif
+            // Arrancamos la aplicación
             controlador.Run();
         }
     }
@@ -50,11 +53,11 @@ namespace Aplicacion
             }
             public void MostrarLinea(Object msg) => WriteLine(msg.ToString());
             // c# Generics
-            public T ObtenerInput<T>(string prompt)
+            public T ObtenerInput<T>(string peticion)
             {
                 while (true)
                 {
-                    Write($"   {prompt.Trim()}: ");
+                    Write($"   {peticion.Trim()}: ");
                     var input = ReadLine();
                     // Generamos una Excepción
                     if (input.ToLower().Trim() == "fin") throw new Exception("Entrada cancelada por el usuario");
@@ -64,7 +67,7 @@ namespace Aplicacion
                         var valor = TypeDescriptor.GetConverter(typeof(T)).ConvertFromString(input);
                         return (T)valor;
                     }
-                    // Captura y control de una excepción
+                    // Captura y control de la excepción si falla el conversor
                     catch (Exception e)
                     {
                         WriteLine($"Error: {e.Message}");
@@ -267,10 +270,7 @@ namespace Aplicacion
             }
             public void AñadirNota(Calificacion cal) =>
                 Notas.Add(cal);
-
-
         }
-
     }
     namespace Servicios
     {
@@ -297,7 +297,6 @@ namespace Aplicacion
                     .Where(row => row.Length > 0)
                     .Select(ParseRow).ToList();
             }
-
             void IRepositorio.GuardarCalificaciones(List<Calificacion> data)
             {
                 var lines = new List<string> { "X,Nombre,Nota" };
@@ -305,7 +304,6 @@ namespace Aplicacion
 
                 File.WriteAllLines(datafile, lines);
             }
-
             Calificacion ParseRow(string row)
             {
                 NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
@@ -340,7 +338,6 @@ namespace Aplicacion
             }
         }
     }
-
     namespace Core
     {
         // Static para referenciarlo desde todos los componentes
