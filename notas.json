@@ -1,0 +1,37 @@
+[
+  {
+    "Nombre": "Luis",
+    "Sexo": "H",
+    "Nota": 7.5
+  },
+  {
+    "Nombre": "Marta",
+    "Sexo": "M",
+    "Nota": 6
+  },
+  {
+    "Nombre": "Marcos",
+    "Sexo": "H",
+    "Nota": 6
+  },
+  {
+    "Nombre": "Aroa",
+    "Sexo": "M",
+    "Nota": 5
+  },
+  {
+    "Nombre": "Nerea",
+    "Sexo": "M",
+    "Nota": 4
+  },
+  {
+    "Nombre": "Kike",
+    "Sexo": "H",
+    "Nota": 6.5
+  },
+  {
+    "Nombre": "Juan",
+    "Sexo": "H",
+    "Nota": 3
+  }
+]

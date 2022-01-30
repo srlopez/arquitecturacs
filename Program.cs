@@ -1,105 +1,111 @@
 ﻿/*
 PROGRAMACION CON ARQUITECTURA 
-CON REPOSITORIO E INYECCION DE PREDICADO
-https://zetcode.com/csharp/predicate/
+Para mostrar la inyección de dependencias
+EL contenedor de dependencias
+La inyección de predicado
 
 Clases con namespaces
 Aplicacion.Negocio.Sistema
 Aplicacion.Negocio.Modelos.Calificacion
-Aplicacion.UI.Console.Vista
-Aplicacion.UI.Console.Controlador
+Aplicacion.UI.Vista
+Aplicacion.UI.Controlador
 Aplicacion.Services.Repositorio
+AppSytem.IoC
 */
+#define IoC
 
 using System;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
+using static System.Console;
 
 namespace Aplicacion
 {
     using Services;
     using Negocio;
     using UI.Console;
+    using Core;
     class Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("> Componemos la aplición");
+#if IoC
+            IoC.Register<IRepositorio, RepositorioJSON>();
+            IoC.Register<Sistema>();
+            IoC.Register<Vista>();
+            IoC.Register<Controlador>();
+            var controlador = Aplicacion.Core.IoC.Create<Controlador>();
+         
+#else
             var repositorio = new RepositorioCSV();
             var sistema = new Sistema(repositorio);
             var vista = new Vista();
             var controlador = new Controlador(sistema, vista);
-
-            Console.WriteLine("> Lanzamos la aplición");
+#endif
             controlador.Run();
-
-            Console.WriteLine("> Aplicación finalizada");
         }
     }
 
     namespace UI.Console
     {
-        using System;
         using Negocio.Modelos;
 
         public class Vista
         {
-            public void LimpiarPantalla() => Console.Clear();
-            public void MuestraLineCR(Object msg)
+            public void LimpiarPantalla() => Clear();
+            public void MostrarLineaCR(Object msg)
             {
-                Console.WriteLine(msg.ToString());
-                Console.ReadLine();
+                Write(msg.ToString());
+                ReadKey();
             }
-            public void MuestraLine(Object msg) => Console.WriteLine(msg.ToString());
-
+            public void MostrarLinea(Object msg) => WriteLine(msg.ToString());
             // c# Generics
             public T ObtenerInput<T>(string prompt)
             {
                 while (true)
                 {
-                    Console.Write($"   {prompt.Trim()}: ");
-                    var input = Console.ReadLine();
-                    if (input.ToLower().Trim() == "fin") input = int.MinValue.ToString();
+                    Write($"   {prompt.Trim()}: ");
+                    var input = ReadLine();
+                    // Generamos una Excepción
+                    if (input.ToLower().Trim() == "fin") throw new Exception("Entrada cancelada por el usuario");
                     try
                     {
                         // c# Reflexion
                         var valor = TypeDescriptor.GetConverter(typeof(T)).ConvertFromString(input);
                         return (T)valor;
                     }
+                    // Captura y control de una excepción
                     catch (Exception e)
                     {
-                        Console.WriteLine($"Error: {e.Message}");
+                        WriteLine($"Error: {e.Message}");
                     }
                 }
             }
-            public void MostrarObjetos<T>(string titulo, List<T> opciones)
+            public void MostrarLista<T>(string titulo, List<T> opciones)
             {
-                Console.WriteLine($"   [ {titulo} ]");
-                Console.WriteLine();
+                WriteLine($"   [ {titulo} ]");
+                WriteLine();
                 for (int i = 0; i < opciones.Count; i++)
                 {
-                    Console.WriteLine($"   {i + 1:##}.- {opciones[i].ToString()}");
+                    WriteLine($"   {i + 1:##}.- {opciones[i].ToString()}");
                 }
-                Console.WriteLine();
+                WriteLine();
             }
-            public (int, T) ObtenerOpcion<T>(string titulo, List<T> datos, string prompt)
+            public T ObtenerOpcion<T>(string titulo, List<T> datos, string prompt)
             {
-                MostrarObjetos(titulo, datos);
-                int input = int.MaxValue;
+                MostrarLista(titulo, datos);
+                int input = 0;
                 while (input < 1 || input > datos.Count)
-                {
-                    input = ObtenerInput<int>(prompt);
-                    if (input == int.MinValue) break;
-                };
-                // c# pattern matching de programación funcional
-                return input switch
-                {
-                    int.MinValue => (input, default(T)),
-                    _ => (input - 1, datos.ElementAt(input - 1))
-                };
+                    try
+                    {
+                        input = ObtenerInput<int>(prompt);
+                    }
+                    catch { throw; }; //Relanzamos la excepción
+                return datos.ElementAt(input - 1);
             }
         }
         public class Controlador
@@ -107,54 +113,49 @@ namespace Aplicacion
             private Sistema sistema;
             private Vista vista;
             private Dictionary<string, Action> casosDeUso;
-
             public Controlador(Sistema sistema, Vista vista)
             {
                 this.sistema = sistema;
                 this.vista = vista;
                 // c# Action vs Func: programación funcional
-                // c# Dictionary Colecion generica
+                // c# Dictionary Colección generica
                 this.casosDeUso = new Dictionary<string, Action>(){
                     { "Obtener la media de las notas", obtenerLaMedia },
-                    { "Obtener la mejor nota",()=>vista.MuestraLine($"Caso de uso no implementado") },
+                    { "Obtener la mejor nota",()=>vista.MostrarLinea($"Caso de uso no implementado") },
                     { "Informe Suspensos", InformeSuspensos },
                     { "Informe Aprobados H", InformeAprobadosH },
                     { "Informe Todos", InformeTodos },
-                    { "Pruebas genericas de inut", Pruebas },
+                    { "Informe de Alumno", InformesXAlumno },
                 };
             }
-
+            // CICLO DE APLICACIÓN
             public void Run()
             {
                 vista.LimpiarPantalla();
-                // Acceso a las Claves dels diccionario
+                // Acceso a las Claves del diccionario
                 var menu = casosDeUso.Keys.ToList<String>();
                 while (true)
-                {
-                    // c# Deconstrucción de tuplas para obtener una opcion
-                    (var opcion, var key) = vista.ObtenerOpcion("Menu de Usuario", menu, "Seleciona una opción");
-                    if (opcion == int.MinValue) return;
-                    // Ejecución de la opción escogida
-                    casosDeUso[key].Invoke();
-                    vista.MuestraLineCR("Pulsa Return para continuar");
-                }
+                    try
+                    {
+                        var opcion = vista.ObtenerOpcion("Menu de Usuario", menu, "Seleciona una opción");
+                        casosDeUso[opcion].Invoke();
+                        vista.MostrarLineaCR("Pulsa Return para continuar");
+                    }
+                    catch { return; }
             }
-
             // CASOS DE USO
             public void obtenerLaMedia() =>
-                 vista.MuestraLine($"La media de la notas es: {sistema.CalculoDeLaMedia():0.00}");
-
+                 vista.MostrarLinea($"La media de la notas es: {sistema.CalculoDeLaMedia():0.00}");
             private static bool AprobadosH(Calificacion c) => c.Sexo == "H" && c.Nota >= 5;
             private static bool Suspensos(Calificacion c) => c.Nota < 5;
             public void InformeSuspensos() =>
-                //InformeGenerico("Informe Aprobados Hombres", sistema.LasNotas(), Suspensos);
+                //InformeGenerico("Informe Aprobados Hombres", sistema.Notas, Suspensos);
                 // C# Lambda como parametros: programacion funcional
-                InformeGenerico("Informe Aprobados Hombres", sistema.LasNotas(), (Calificacion c) => c.Nota < 5);
-
+                InformeGenerico("Informe Aprobados Hombres", sistema.Notas, (Calificacion c) => c.Nota < 5);
             public void InformeAprobadosH() =>
-                InformeGenerico("Informe Aprobados Hombres", sistema.LasNotas(), AprobadosH);
+                InformeGenerico("Informe Aprobados Hombres", sistema.Notas, AprobadosH);
             public void InformeTodos() =>
-                vista.MostrarObjetos("Informe Suspensos", sistema.LasNotas());
+                vista.MostrarLista("Informe Suspensos", sistema.Notas);
             private void InformeGenerico(string titulo, List<Calificacion> lista, Func<Calificacion, bool> esValido)
             {
                 List<Calificacion> calSeleccionadas = new List<Calificacion>();
@@ -162,23 +163,31 @@ namespace Aplicacion
                 {
                     if (esValido.Invoke(cal)) calSeleccionadas.Add(cal);
                 };
-                vista.MostrarObjetos(titulo, calSeleccionadas);
-                // en una linea sería
+                vista.MostrarLista(titulo, calSeleccionadas);
+                // Un poco más funcional, en una linea sería
                 // vista.MostrarObjetos(titulo, lista.Where(esValido).ToList());
             }
-
-            public void Pruebas()
+            private void InformesXAlumno()
             {
-                var s = vista.ObtenerInput<string>("un string");
-                Console.WriteLine($"{s} {s == int.MinValue.ToString()}");
-                var d = vista.ObtenerInput<decimal>("un decimal");
-                Console.WriteLine($"{d} {d == int.MinValue}");
-                var f = vista.ObtenerInput<float>("un float");
-                Console.WriteLine($"{f} {f == int.MinValue}");
-                var i = vista.ObtenerInput<int>("un int");
-                Console.WriteLine($"{i} {i == int.MinValue}");
+                while (true) try
+                    {
+                        var nombre = vista.ObtenerInput<String>("Nombre del alumno");
+                        // Lambda
+                        var calificación = sistema.Notas.FirstOrDefault(c => c.Nombre == nombre);
+                        // pattern matching
+                        var msg = calificación switch
+                        {
+                            null => "Alumno no encontrado",
+                            _ => calificación.ToString()
+                        };
+                        vista.MostrarLinea(msg);
+                    }
+                    catch (Exception e)
+                    {
+                        vista.MostrarLinea(e.Message);
+                        return;
+                    }
             }
-
             /*     
             // https://zetcode.com/csharp/predicate/
             // https://stackoverflow.com/questions/8099631/how-to-return-value-from-action
@@ -200,6 +209,7 @@ namespace Aplicacion
     }
     namespace Negocio
     {
+        using Modelos;
         namespace Modelos
         {
             public class Calificacion
@@ -207,12 +217,6 @@ namespace Aplicacion
                 public string Nombre { get; set; }
                 public string Sexo { get; set; }
                 public decimal Nota { get; set; }
-                public Calificacion(string sexo, string nombre, decimal nota)
-                {
-                    Nombre = nombre;
-                    Sexo = sexo;
-                    Nota = nota;
-                }
 
                 public override string ToString() => $"({Nombre}, {Nota})";
                 internal static Calificacion ParseRow(string row)
@@ -220,18 +224,12 @@ namespace Aplicacion
                     NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
 
                     var columns = row.Split(',');
-                    // return new Calificacion
-                    // {
-                    //     Sexo = columns[0],
-                    //     Nombre = columns[1],
-                    //     Nota = decimal.Parse(columns[2])
-                    // };
-                    return new Calificacion(
-                        nombre: columns[1],
-                        sexo: columns[0],
-                        nota: decimal.Parse(columns[2], nfi)
-                    );
-
+                    return new Calificacion
+                    {
+                        Sexo = columns[0],
+                        Nombre = columns[1],
+                        Nota = decimal.Parse(columns[2])
+                    };
                 }
             }
         }
@@ -239,7 +237,12 @@ namespace Aplicacion
         {
             IRepositorio Repositorio;
 
+            //TODO Implementar Posible caché
             //List<Calificacion> Notas;
+            public List<Calificacion> Notas
+            {
+                get => Repositorio.CargarCalificaciones();
+            }
 
             public Sistema(IRepositorio repositorio)
             {
@@ -255,8 +258,10 @@ namespace Aplicacion
                 return CalculoDeLaSuma(aNotas) / Notas.Count;
             }
 
-            public List<Modelos.Calificacion> LasNotas() =>
-                 Repositorio.CargarCalificaciones();
+            public void AñadirNota(Calificacion cal){
+                //TODO
+            }
+
         }
 
     }
@@ -269,8 +274,10 @@ namespace Aplicacion
             void Inicializar();
             List<Calificacion> CargarCalificaciones();
 
-        }
+            //TODO en CSV
+            // void GuardarCalificaciones(List<Calificacion> data);
 
+        }
         public class RepositorioCSV : IRepositorio
         {
             string datafile;
@@ -285,8 +292,79 @@ namespace Aplicacion
                     .Where(row => row.Length > 0)
                     .Select(Calificacion.ParseRow).ToList();
             }
-
-
         }
+        public class RepositorioJSON : IRepositorio
+        {
+            string datafile;
+            void IRepositorio.Inicializar()
+            {
+                this.datafile = "notas.json";
+            }
+            List<Calificacion> IRepositorio.CargarCalificaciones()
+            {
+                var txtJson = File.ReadAllText(datafile);
+                return JsonSerializer.Deserialize<List<Calificacion>>(txtJson);
+            }
+            public void GuardarCalificaciones(List<Calificacion> data)
+            {
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                var json = JsonSerializer.Serialize(data, options);
+                File.WriteAllText(datafile, json);
+
+            }
+        }
+    }
+
+    namespace Core
+    {
+        // Static para referenciarlo desde todos los componentes
+        public static class IoC
+        {
+            private static readonly Dictionary<Type, (Type, Object)> services =
+                new Dictionary<Type, (Type, Object)>();
+
+            static IoC() { }
+
+            #region Register
+            public static void Register<TImplementation>() =>
+                Register<TImplementation, TImplementation>();
+            public static void Register<TInterface, TImplementation>() where TImplementation : TInterface =>
+                services[typeof(TInterface)] = (typeof(TImplementation), null);
+            #endregion
+            #region Create
+            public static TInterface Create<TInterface>(Object[] parameters = null) =>
+                    (TInterface)Create(typeof(TInterface), parameters);
+            public static object Create(Type type, Object[] concreteParams)
+            {
+                // Verificamos si la instancia ya está creada
+                var (concreteType, concreteInstance) = services[type];
+                if (concreteInstance is not null) return concreteInstance;
+
+                // Obtenemos el primer constructor
+                var defaultConstructor = concreteType.GetConstructors()[0];
+                // Obtenemos los parámetros
+                var defaultParams = defaultConstructor.GetParameters();
+                // Instanciamos los parámetros con recursión
+                // Los parámetros de los servicios sólo pueden ser otros servicios
+                var parameters = concreteParams ?? defaultParams.Select(param => Create(param.ParameterType, null)).ToArray();
+                // Construimos la instancia
+                concreteInstance = defaultConstructor.Invoke(parameters);
+                // Actualizamos el registro
+                services[type] = (concreteType, concreteInstance);
+
+                // Devolvemos la instancia
+                return concreteInstance;
+            }
+            #endregion
+            // public static string ToString()
+            // {
+            //     var sb = new StringBuilder();
+            //     foreach (var (key, (type, instance)) in services)
+            //         sb.Append($"{l(key)}: {l(type)} {instance! is null}\n");
+            //     string l(object s) => s.ToString().Split(".").Last();
+            //     return sb.ToString();
+            // }
+        }
+
     }
 }
