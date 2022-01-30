@@ -11,7 +11,7 @@ using static System.Console;
 
 namespace Aplicacion
 {
-    using Services;
+    using Servicios;
     using Negocio;
     using UI.Console;
     using Core;
@@ -19,12 +19,12 @@ namespace Aplicacion
     {
         static void Main(string[] args)
         {
-#if IoC
+#if IoCa
             IoC.Register<IRepositorio, RepositorioJSON>();
             IoC.Register<Sistema>();
             IoC.Register<Vista>();
             IoC.Register<Controlador>();
-            var controlador = Aplicacion.Core.IoC.Create<Controlador>();
+            var controlador = IoC.Create<Controlador>();
 
 #else
             var repositorio = new RepositorioCSV();
@@ -110,9 +110,9 @@ namespace Aplicacion
                     { "Obtener la media de las notas", obtenerLaMedia },
                     { "Obtener la mejor nota",()=>vista.MostrarLinea($"Caso de uso no implementado") },
                     { "Informe Suspensos", InformeSuspensos },
-                    { "Informe Aprobados H", InformeAprobadosH },
+                    { "Informe Aprobados por Sexo", InformeAprobadosXSexo },
                     { "Informe Todos", InformeTodos },
-                    { "Informe de Alumno", InformesXAlumno },
+                    { "Informe por Alumno", InformesXAlumno },
                 };
             }
             // CICLO DE APLICACIÓN
@@ -134,16 +134,20 @@ namespace Aplicacion
             // CASOS DE USO
             public void obtenerLaMedia() =>
                  vista.MostrarLinea($"La media de la notas es: {sistema.CalculoDeLaMedia():0.00}");
-            private static bool AprobadosH(Calificacion c) => c.Sexo == "H" && c.Nota >= 5;
+            private static bool AprobadosXSexo(Calificacion c, string sexo) => c.Sexo == sexo && c.Nota >= 5;
             private static bool Suspensos(Calificacion c) => c.Nota < 5;
             public void InformeSuspensos() =>
-                //InformeGenerico("Informe Aprobados Hombres", sistema.Notas, Suspensos);
-                // C# Lambda como parametros: programacion funcional
-                InformeGenerico("Informe Aprobados Hombres", sistema.Notas, (Calificacion c) => c.Nota < 5);
-            public void InformeAprobadosH() =>
-                InformeGenerico("Informe Aprobados Hombres", sistema.Notas, AprobadosH);
+                InformeGenerico("Informe Suspensos", sistema.Notas, Suspensos);
             public void InformeTodos() =>
-                vista.MostrarLista("Informe Suspensos", sistema.Notas);
+                // C# Lambda como parametros: programacion funcional
+                InformeGenerico($"Informe general", sistema.Notas, (Calificacion cal) => true);
+            public void InformeAprobadosXSexo()
+            {
+                var sexo = vista.ObtenerInput<String>("Sexo");
+                // C# Lambda reconstruido
+                InformeGenerico($"Informe Aprobados {sexo}", sistema.Notas, (Calificacion cal) => AprobadosXSexo(cal, sexo));
+            }
+
             private void InformeGenerico(string titulo, List<Calificacion> lista, Func<Calificacion, bool> esValido)
             {
                 List<Calificacion> calSeleccionadas = new List<Calificacion>();
@@ -197,7 +201,8 @@ namespace Aplicacion
                     return;
                 }
             }
-            /*     
+            /*  
+            Con predicado   
             // https://zetcode.com/csharp/predicate/
             // https://stackoverflow.com/questions/8099631/how-to-return-value-from-action
 
@@ -244,8 +249,6 @@ namespace Aplicacion
                 Notas = Repositorio.CargarCalificaciones();
             }
 
-            private decimal CalculoDeLaSuma(decimal[] datos) => datos.Sum();
-
             public void CerrarSistema()
             {
                 Repositorio.GuardarCalificaciones(Notas);
@@ -254,6 +257,8 @@ namespace Aplicacion
             {
                 var aNotas = Notas.Select(calificacion => calificacion.Nota).ToArray();
                 return CalculoDeLaSuma(aNotas) / Notas.Count;
+                // función interna
+                decimal CalculoDeLaSuma(decimal[] datos) => datos.Sum();
             }
             public string ContadorSexo(string sexo)
             {
@@ -267,7 +272,7 @@ namespace Aplicacion
         }
 
     }
-    namespace Services
+    namespace Servicios
     {
         using Negocio.Modelos;
 
@@ -292,8 +297,15 @@ namespace Aplicacion
                     .Where(row => row.Length > 0)
                     .Select(ParseRow).ToList();
             }
-            //TODO en CSV
-            void IRepositorio.GuardarCalificaciones(List<Calificacion> data) { }
+
+            void IRepositorio.GuardarCalificaciones(List<Calificacion> data)
+            {
+                var lines = new List<string> { "X,Nombre,Nota" };
+                lines.AddRange(data.Select(i => $"{i.Sexo},{i.Nombre},{i.Nota}"));
+
+                File.WriteAllLines(datafile, lines);
+            }
+
             Calificacion ParseRow(string row)
             {
                 NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;

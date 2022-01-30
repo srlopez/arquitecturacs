@@ -1,8 +1,9 @@
-X,Alumno,Nota
-H,Luis, 7.5
-M,Marta, 6
-H,Marcos, 6
-M,Aroa, 5
-M,Nerea, 4
-H,Kike, 6.5
-H,Juan, 3
+X,Nombre,Nota
+H,Luis,7.5
+M,Marta,6
+H,Marcos,6
+M,Aroa,5
+M,Nerea,4
+H,Kike,6.5
+H,Juan,3
+H,Santi,9.9
