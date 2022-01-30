@@ -25,7 +25,7 @@ namespace Aplicacion
             IoC.Register<Vista>();
             IoC.Register<Controlador>();
             var controlador = Aplicacion.Core.IoC.Create<Controlador>();
-         
+
 #else
             var repositorio = new RepositorioCSV();
             var sistema = new Sistema(repositorio);
@@ -106,6 +106,7 @@ namespace Aplicacion
                 // c# Action vs Func: programación funcional
                 // c# Dictionary Colección generica
                 this.casosDeUso = new Dictionary<string, Action>(){
+                    { "Añadir Calificación", AñadirCalificacion },
                     { "Obtener la media de las notas", obtenerLaMedia },
                     { "Obtener la mejor nota",()=>vista.MostrarLinea($"Caso de uso no implementado") },
                     { "Informe Suspensos", InformeSuspensos },
@@ -127,7 +128,8 @@ namespace Aplicacion
                         casosDeUso[opcion].Invoke();
                         vista.MostrarLineaCR("Pulsa Return para continuar");
                     }
-                    catch { return; }
+                    catch { break; }
+                sistema.CerrarSistema();
             }
             // CASOS DE USO
             public void obtenerLaMedia() =>
@@ -174,6 +176,27 @@ namespace Aplicacion
                         return;
                     }
             }
+            private void AñadirCalificacion()
+            {
+                try
+                {
+                    var nombre = vista.ObtenerInput<String>("Nombre del alumno");
+                    var nota = vista.ObtenerInput<Decimal>("Nota");
+                    var sexo = vista.ObtenerInput<String>("Sexo");
+
+                    sistema.AñadirNota(new Calificacion
+                    {
+                        Nombre = nombre,
+                        Nota = nota,
+                        Sexo = sexo
+                    });
+                }
+                catch (Exception e)
+                {
+                    vista.MostrarLinea(e.Message);
+                    return;
+                }
+            }
             /*     
             // https://zetcode.com/csharp/predicate/
             // https://stackoverflow.com/questions/8099631/how-to-return-value-from-action
@@ -205,48 +228,41 @@ namespace Aplicacion
                 public decimal Nota { get; set; }
 
                 public override string ToString() => $"({Nombre}, {Nota})";
-                internal static Calificacion ParseRow(string row)
-                {
-                    NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
-
-                    var columns = row.Split(',');
-                    return new Calificacion
-                    {
-                        Sexo = columns[0],
-                        Nombre = columns[1],
-                        Nota = decimal.Parse(columns[2])
-                    };
-                }
             }
         }
         public class Sistema
         {
             IRepositorio Repositorio;
 
-            //TODO Implementar Posible caché
-            //List<Calificacion> Notas;
-            public List<Calificacion> Notas
-            {
-                get => Repositorio.CargarCalificaciones();
-            }
+            //Caché
+            public List<Calificacion> Notas { get; }
 
             public Sistema(IRepositorio repositorio)
             {
                 Repositorio = repositorio;
                 Repositorio.Inicializar();
+                Notas = Repositorio.CargarCalificaciones();
             }
 
             private decimal CalculoDeLaSuma(decimal[] datos) => datos.Sum();
+
+            public void CerrarSistema()
+            {
+                Repositorio.GuardarCalificaciones(Notas);
+            }
             public decimal CalculoDeLaMedia()
             {
-                var Notas = Repositorio.CargarCalificaciones();
                 var aNotas = Notas.Select(calificacion => calificacion.Nota).ToArray();
                 return CalculoDeLaSuma(aNotas) / Notas.Count;
             }
-
-            public void AñadirNota(Calificacion cal){
-                //TODO
+            public string ContadorSexo(string sexo)
+            {
+                var c = Notas.Select(calificacion => calificacion.Sexo == sexo).Count();
+                return $"{c}/{Notas.Count()}";
             }
+            public void AñadirNota(Calificacion cal) =>
+                Notas.Add(cal);
+
 
         }
 
@@ -259,9 +275,7 @@ namespace Aplicacion
         {
             void Inicializar();
             List<Calificacion> CargarCalificaciones();
-
-            //TODO en CSV
-            // void GuardarCalificaciones(List<Calificacion> data);
+            void GuardarCalificaciones(List<Calificacion> data);
 
         }
         public class RepositorioCSV : IRepositorio
@@ -276,7 +290,21 @@ namespace Aplicacion
                 return File.ReadAllLines(datafile)
                     .Skip(1)
                     .Where(row => row.Length > 0)
-                    .Select(Calificacion.ParseRow).ToList();
+                    .Select(ParseRow).ToList();
+            }
+            //TODO en CSV
+            void IRepositorio.GuardarCalificaciones(List<Calificacion> data) { }
+            Calificacion ParseRow(string row)
+            {
+                NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
+
+                var columns = row.Split(',');
+                return new Calificacion
+                {
+                    Sexo = columns[0],
+                    Nombre = columns[1],
+                    Nota = decimal.Parse(columns[2])
+                };
             }
         }
         public class RepositorioJSON : IRepositorio
@@ -291,7 +319,7 @@ namespace Aplicacion
                 var txtJson = File.ReadAllText(datafile);
                 return JsonSerializer.Deserialize<List<Calificacion>>(txtJson);
             }
-            public void GuardarCalificaciones(List<Calificacion> data)
+            void IRepositorio.GuardarCalificaciones(List<Calificacion> data)
             {
                 var options = new JsonSerializerOptions { WriteIndented = true };
                 var json = JsonSerializer.Serialize(data, options);

@@ -33,5 +33,10 @@
     "Nombre": "Juan",
     "Sexo": "H",
     "Nota": 3
+  },
+  {
+    "Nombre": "Santi",
+    "Sexo": "H",
+    "Nota": 9.9
   }
 ]
