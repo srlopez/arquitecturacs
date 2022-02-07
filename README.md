@@ -37,3 +37,11 @@ Tendrá un CRUD de Notas, y una serie de informes.
 Pues eso... un proyecto xUnit que verifique...
 
 Echándole imaginación, y añadiendo Examen/Curso podríamos hacer otras cositas, como los ejemplos de la pag 130 y 132 del documento PDF `PruebasDeSoftware.pdf` adjunto al proyecto
+
+### Mas
+Suponemos un entorno multiusuario. Entonces...
+Los métodos del sistema deberían ser asíncronos, y las estructuras de datos deberían ser capaces de ser accedidas concurrentemente.
+Revisa del Sitema
+- AñadirNota
+- PorcentajeXSexo
+Y mira cómo denen ser invocadas desde el controlador.

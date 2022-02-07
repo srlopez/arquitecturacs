@@ -202,7 +202,10 @@ namespace Aplicacion
                     var nota = vista.ObtenerInput<Decimal>("Nota");
                     var sexo = vista.ObtenerInput<String>("Sexo");
 
-                    sistema.AñadirNota(new Calificacion
+                    // Esto evita warnings, y permite que el método sea invocado
+                    // asincronamente. Lo hago por no complicar el ejemplo, pero devería ser 
+                    // con await 
+                    _ = sistema.AñadirNota(new Calificacion
                     {
                         Nombre = nombre,
                         Nota = nota,
@@ -266,6 +269,8 @@ namespace Aplicacion
         }
         public class Sistema
         {
+            private readonly object bloqueo = new object();
+
             IRepositorio Repositorio;
             //Caché
             public List<Calificacion> Notas { get; }
@@ -286,8 +291,13 @@ namespace Aplicacion
                 // función interna
                 decimal CalculoDeLaSuma(decimal[] datos) => datos.Sum();
             }
-            public void AñadirNota(Calificacion cal) =>
-                Notas.Add(cal);
+            public async Task AñadirNota(Calificacion cal)
+            {
+                lock (bloqueo)
+                {
+                    Notas.Add(cal);
+                }
+            }
 
             // Ejemplo en modo asincrono. Para trabajar TODOS los métodos
             public async Task<string> PorcentajeXSexo(string sexo)
