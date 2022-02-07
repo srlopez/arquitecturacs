@@ -126,8 +126,8 @@ namespace Aplicacion
                     { "Informe Aprobados por Sexo", InformeAprobadosXSexo },
                     { "Informe Todos", InformeTodos },
                     { "Informe por Alumno", InformesXAlumno },
-                    //{ "Porcentaje por Sexo de Alumnos", async()=>await  PorcentajeXSexo()}
-                    { "Porcentaje por Sexo de Alumnos", PorcentajeXSexo}
+                    { "Porcentaje por Sexo de Alumnos", async()=>await  PorcentajeXSexo()}
+                    //{ "Porcentaje por Sexo de Alumnos", PorcentajeXSexo}
                 };
             }
             // CICLO DE APLICACIÓN
@@ -218,13 +218,14 @@ namespace Aplicacion
                     return;
                 }
             }
-            //private async Task PorcentajeXSexo()
-            private void PorcentajeXSexo()
+            // private void PorcentajeXSexo() //<- Evitando poner async Task
+            // {
+            // var h = sistema.PorcentajeXSexo("H").GetAwaiter().GetResult();
+            // var m = sistema.PorcentajeXSexo("M").GetAwaiter().GetResult();
+            private async Task PorcentajeXSexo()
             {
-                // var h = await sistema.PorcentajeXSexo("H");
-                // var m = await sistema.PorcentajeXSexo("M");
-                var h = sistema.PorcentajeXSexo("H").GetAwaiter().GetResult();
-                var m = sistema.PorcentajeXSexo("M").GetAwaiter().GetResult();
+                var h = await sistema.PorcentajeXSexo("H");
+                var m = await sistema.PorcentajeXSexo("M");
 
                 vista.MostrarLinea($"H:  {h}");
                 vista.MostrarLinea($"M:  {m}");
