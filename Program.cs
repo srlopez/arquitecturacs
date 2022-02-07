@@ -203,8 +203,8 @@ namespace Aplicacion
                     var sexo = vista.ObtenerInput<String>("Sexo");
 
                     // Esto evita warnings, y permite que el método sea invocado
-                    // asincronamente. Lo hago por no complicar el ejemplo, pero devería ser 
-                    // con await 
+                    // asíncronamente. Lo hago por no complicar el ejemplo, pero debería ser 
+                    // con await. Y mostrar otras posibilidades
                     _ = sistema.AñadirNota(new Calificacion
                     {
                         Nombre = nombre,
