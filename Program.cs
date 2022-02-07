@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading.Tasks;
 using static System.Console;
 
 namespace Aplicacion
@@ -116,7 +117,7 @@ namespace Aplicacion
                 this.sistema = sistema;
                 this.vista = vista;
                 // c# Action vs Func: programación funcional
-                // c# Dictionary Colección generica
+                // c# Dictionary Colección genérica
                 this.casosDeUso = new Dictionary<string, Action>(){
                     { "Añadir Calificación", AñadirCalificacion },
                     { "Obtener la media de las notas", obtenerLaMedia },
@@ -125,6 +126,7 @@ namespace Aplicacion
                     { "Informe Aprobados por Sexo", InformeAprobadosXSexo },
                     { "Informe Todos", InformeTodos },
                     { "Informe por Alumno", InformesXAlumno },
+                    //{ "Porcentaje por Sexo de Alumnos", async()=>await  PorcentajeXSexo()}
                     { "Porcentaje por Sexo de Alumnos", PorcentajeXSexo}
                 };
             }
@@ -213,10 +215,14 @@ namespace Aplicacion
                     return;
                 }
             }
+            //private async Task PorcentajeXSexo()
             private void PorcentajeXSexo()
             {
-                var h = sistema.PorcentajeXSexo("H");
-                var m = sistema.PorcentajeXSexo("M");
+                // var h = await sistema.PorcentajeXSexo("H");
+                // var m = await sistema.PorcentajeXSexo("M");
+                var h = sistema.PorcentajeXSexo("H").GetAwaiter().GetResult();
+                var m = sistema.PorcentajeXSexo("M").GetAwaiter().GetResult();
+
                 vista.MostrarLinea($"H:  {h}");
                 vista.MostrarLinea($"M:  {m}");
             }
@@ -280,14 +286,17 @@ namespace Aplicacion
                 // función interna
                 decimal CalculoDeLaSuma(decimal[] datos) => datos.Sum();
             }
-            public string PorcentajeXSexo(string sexo)
+            public void AñadirNota(Calificacion cal) =>
+                Notas.Add(cal);
+
+            // Ejemplo en modo asincrono. Para trabajar TODOS los métodos
+            public async Task<string> PorcentajeXSexo(string sexo)
             {
                 double cuenta = Notas.Where(calificacion => calificacion.Sexo == sexo).Count();
                 var total = Notas.Count();
                 return $"{cuenta}/{total}  {cuenta * 100 / total:#.00}%";
             }
-            public void AñadirNota(Calificacion cal) =>
-                Notas.Add(cal);
+
         }
     }
     /*
