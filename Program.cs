@@ -305,6 +305,8 @@ namespace Aplicacion
             {
                 double cuenta = Notas.Where(calificacion => calificacion.Sexo == sexo).Count();
                 var total = Notas.Count();
+                //return Task.FromResult($"{cuenta}/{total}  {cuenta * 100 / total:#.00}%");
+                // await Task.Delay(0);
                 return $"{cuenta}/{total}  {cuenta * 100 / total:#.00}%";
             }
 
