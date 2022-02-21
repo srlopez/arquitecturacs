@@ -24,7 +24,7 @@ namespace Aplicacion
         static void Main(string[] args)
         {
 #if IoC
-            // Utilizando el IoC, como arquitectura de servicios
+            // Utilizando IoC como contenedor de servicios
             IoC.Register<IRepositorio, RepositorioJSON>();
             IoC.Register<Sistema>();
             IoC.Register<Vista>();
@@ -44,7 +44,7 @@ namespace Aplicacion
 
     /*
     Capa de Presentación/UserInterface
-    Separamos la Vista del Controlador
+    Separamos la Vista y el Controlador de la Capa de Negocio
     */
     namespace UI.Console
 
@@ -313,7 +313,7 @@ namespace Aplicacion
         }
     }
     /*
-    Capa de Datos
+    Capa de Datos/Repositorio
     Contiene los servicios de acceso a datos
     */
     namespace Servicios
