@@ -18,6 +18,7 @@ namespace Aplicacion
     using Core;
     /*
      Entrypoint
+     Raiz de la composición de servicios/objetos.
     */
     class Program
     {
