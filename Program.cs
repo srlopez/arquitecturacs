@@ -1,7 +1,7 @@
 ﻿#define DI 
 // IoC Directiva para compilar utilizando nuestro Contenedor de Dependencias
 // DI para compilar con el Contenedor de Servicios de Microsoft
-// Cambiandola por {OTROVALOR} onvertimos el programa en una tiípica arquitectura de Tres Capas
+// {OTROVALOR} y el programa es una tiípica arquitectura de Tres Capas
 using System;
 using System.IO;
 using System.Linq;
@@ -38,7 +38,7 @@ namespace Aplicacion
             IServiceScope scope = _serviceProvider.CreateScope();
             var controlador = scope.ServiceProvider.GetRequiredService<Controlador>();
 #elif IoC
-            // Utilizando IoC como contenedor de servicios
+            // Utilizando Core.IoC como contenedor de servicios
             IoC.Register<IRepositorio, RepositorioJSON>();
             IoC.Register<Sistema>();
             IoC.Register<Vista>();
@@ -52,6 +52,7 @@ namespace Aplicacion
             var controlador = new Controlador(sistema, vista);
 #endif
             // Arrancamos la aplicación
+            // Independientemente de cómo la hayamos compuesto.
             controlador.Run();
             // Y finaliza el ciclo
 
@@ -277,6 +278,7 @@ namespace Aplicacion
     namespace Negocio
     {
         using Modelos;
+
         namespace Modelos
         {
             public class Calificacion
@@ -333,7 +335,7 @@ namespace Aplicacion
         }
     }
     /*
-    Capa de Datos/Repositorio
+    Capa de Almacen de Datos/Repositorio
     Contiene los servicios de acceso a datos
     */
     namespace Data
