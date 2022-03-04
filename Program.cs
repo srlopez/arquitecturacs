@@ -1,6 +1,7 @@
-﻿#define IoC // Directiva para compilar utilizando el Contenedor de Dependencias
-// Cambiandola por NoIoC onvertimos el programa en una tiípica arquitectura de Tres Capas
-
+﻿#define DI 
+// IoC Directiva para compilar utilizando nuestro Contenedor de Dependencias
+// DI para compilar con el Contenedor de Servicios de Microsoft
+// Cambiandola por {OTROVALOR} onvertimos el programa en una tiípica arquitectura de Tres Capas
 using System;
 using System.IO;
 using System.Linq;
@@ -8,11 +9,13 @@ using System.Text.Json;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+
 using static System.Console;
 
 namespace Aplicacion
 {
-    using Servicios;
+    using Data;
     using Negocio;
     using UI.Console;
     using Core;
@@ -24,7 +27,17 @@ namespace Aplicacion
     {
         static void Main(string[] args)
         {
-#if IoC
+#if DI
+            // DI Utilizando ServiceCollection como contenedor de servicios
+            var services = new ServiceCollection();
+            services.AddSingleton<IRepositorio, RepositorioCSV>();
+            services.AddSingleton<Sistema>();
+            services.AddSingleton<Vista>();
+            services.AddSingleton<Controlador>();
+            var _serviceProvider = services.BuildServiceProvider(true);
+            IServiceScope scope = _serviceProvider.CreateScope();
+            var controlador = scope.ServiceProvider.GetRequiredService<Controlador>();
+#elif IoC
             // Utilizando IoC como contenedor de servicios
             IoC.Register<IRepositorio, RepositorioJSON>();
             IoC.Register<Sistema>();
@@ -40,6 +53,11 @@ namespace Aplicacion
 #endif
             // Arrancamos la aplicación
             controlador.Run();
+            // Y finaliza el ciclo
+
+#if DI
+            _serviceProvider.Dispose();
+#endif
         }
     }
 
@@ -54,7 +72,7 @@ namespace Aplicacion
 
         public class Vista
         {
-            string cancelInput = "fin";
+            public string cancelInput = "fin";
             public void LimpiarPantalla() => Clear();
             public void MostrarLineaCR(Object msg)
             {
@@ -135,6 +153,7 @@ namespace Aplicacion
             public void Run()
             {
                 vista.LimpiarPantalla();
+                vista.MostrarLinea($"Aviso: para finalizar escribir \"{vista.cancelInput}\".\n");
                 // Acceso a las Claves del diccionario
                 var menu = casosDeUso.Keys.ToList<String>();
                 while (true)
@@ -195,7 +214,7 @@ namespace Aplicacion
                         return;
                     }
             }
-            private void AñadirCalificacion()
+            private async void AñadirCalificacion()
             {
                 try
                 {
@@ -205,7 +224,7 @@ namespace Aplicacion
 
                     // Esto evita warnings, y permite que el método sea invocado
                     // asíncronamente. Lo hago por no complicar el ejemplo, pero debería ser 
-                    // con await. Y mostrar otras posibilidades
+                    // así await sistema.AñadirNota(). Y mostrar otras posibilidades
                     _ = sistema.AñadirNota(new Calificacion
                     {
                         Nombre = nombre,
@@ -317,7 +336,7 @@ namespace Aplicacion
     Capa de Datos/Repositorio
     Contiene los servicios de acceso a datos
     */
-    namespace Servicios
+    namespace Data
     {
         using Negocio.Modelos;
 
@@ -325,19 +344,19 @@ namespace Aplicacion
         {
             void Inicializar();
             List<Calificacion> CargarCalificaciones();
-            void GuardarCalificaciones(List<Calificacion> data);
-
+            void GuardarCalificaciones(List<Calificacion> notas);
         }
         public class RepositorioCSV : IRepositorio
         {
-            string datafile;
+            string _datafile;
+
             void IRepositorio.Inicializar()
             {
-                datafile = "notas.csv";
+                _datafile = "notas.csv";
             }
             List<Calificacion> IRepositorio.CargarCalificaciones()
             {
-                return File.ReadAllLines(datafile)
+                return File.ReadAllLines(_datafile)
                     .Skip(1)
                     .Where(row => row.Length > 0)
                     .Select(ParseRow).ToList();
@@ -359,7 +378,7 @@ namespace Aplicacion
             {
                 var lines = new List<string> { "SX,NOMBRE,NOTA" };
                 lines.AddRange(data.Select(ToDTO));
-                File.WriteAllLines(datafile, lines);
+                File.WriteAllLines(_datafile, lines);
                 // Modelo=>DTO
                 string ToDTO(Calificacion item) => $"{item.Sexo},{item.Nombre},{item.Nota}";
             }

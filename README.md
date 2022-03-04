@@ -44,4 +44,10 @@ Los métodos del sistema deberían ser asíncronos, y las estructuras de datos d
 Revisa del Sitema
 - AñadirNota
 - PorcentajeXSexo
-Y mira cómo denen ser invocadas desde el controlador.
+Y mira cómo deben ser invocadas desde el controlador.
+
+Arrancamos la aplicación en la Terminal con `.vscode/launch.json` con este valor:   
+            `"console": "integratedTerminal",`
+
+# Utilizando el DI Contenedor de Microsoft
+`dotnet add package Microsoft.Extensions.DependencyInjection --version 6.0.0`  
