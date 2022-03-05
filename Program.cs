@@ -1,4 +1,4 @@
-﻿#define DI 
+﻿#define xDI 
 // IoC Directiva para compilar utilizando nuestro Contenedor de Dependencias
 // DI para compilar con el Contenedor de Servicios de Microsoft
 // {OTROVALOR} y el programa es una tiípica arquitectura de Tres Capas
@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+
 
 using static System.Console;
 
@@ -46,7 +47,7 @@ namespace Aplicacion
             var controlador = IoC.Create<Controlador>();
 #else
             // Arquitectura en Tres Capas
-            var repositorio = new RepositorioCSV();
+            var repositorio = new RepositorioJSON();
             var sistema = new Sistema(repositorio);
             var vista = new Vista();
             var controlador = new Controlador(sistema, vista);
@@ -300,7 +301,6 @@ namespace Aplicacion
             public Sistema(IRepositorio repositorio)
             {
                 Repositorio = repositorio;
-                Repositorio.Inicializar();
                 Notas = Repositorio.CargarCalificaciones();
             }
             public void CerrarSistema()
@@ -344,67 +344,83 @@ namespace Aplicacion
 
         public interface IRepositorio
         {
-            void Inicializar();
             List<Calificacion> CargarCalificaciones();
             void GuardarCalificaciones(List<Calificacion> notas);
+            void GuardarCalificacion(Calificacion nota);
         }
         public class RepositorioCSV : IRepositorio
         {
-            string _datafile;
+            private string _datafile;
+            private List<Calificacion> _notas;
 
-            void IRepositorio.Inicializar()
+
+            public RepositorioCSV()
             {
                 _datafile = "notas.csv";
+                _notas = CargarCalificaciones();
             }
-            List<Calificacion> IRepositorio.CargarCalificaciones()
+            List<Calificacion> IRepositorio.CargarCalificaciones() => _notas;
+            void IRepositorio.GuardarCalificaciones(List<Calificacion> data) => GuardarCalificaciones(data);
+            void IRepositorio.GuardarCalificacion(Calificacion nota) => GuardarCalificaciones(_notas);
+
+            // Privados
+            // DTO=>Modelo
+            private Calificacion ParseRow(string row)
             {
-                return File.ReadAllLines(_datafile)
+                NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
+
+                var columns = row.Split(',');
+                return new Calificacion
+                {
+                    Sexo = columns[0],
+                    Nombre = columns[1],
+                    Nota = decimal.Parse(columns[2])
+                };
+            }
+            // Modelo=>DTO
+            private string ToDTO(Calificacion item) => $"{item.Sexo},{item.Nombre},{item.Nota}";
+
+            private List<Calificacion> CargarCalificaciones() =>
+                File.ReadAllLines(_datafile)
                     .Skip(1)
                     .Where(row => row.Length > 0)
                     .Select(ParseRow).ToList();
-                // DTO=>Modelo
-                Calificacion ParseRow(string row)
-                {
-                    NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
-
-                    var columns = row.Split(',');
-                    return new Calificacion
-                    {
-                        Sexo = columns[0],
-                        Nombre = columns[1],
-                        Nota = decimal.Parse(columns[2])
-                    };
-                }
-            }
-            void IRepositorio.GuardarCalificaciones(List<Calificacion> data)
+            private void GuardarCalificaciones(List<Calificacion> data)
             {
                 var lines = new List<string> { "SX,NOMBRE,NOTA" };
                 lines.AddRange(data.Select(ToDTO));
                 File.WriteAllLines(_datafile, lines);
-                // Modelo=>DTO
-                string ToDTO(Calificacion item) => $"{item.Sexo},{item.Nombre},{item.Nota}";
             }
-
         }
         public class RepositorioJSON : IRepositorio
         {
-            string datafile;
-            void IRepositorio.Inicializar()
+            private string datafile;
+            private List<Calificacion> _notas;
+
+            public RepositorioJSON()
             {
                 datafile = "notas.json";
+                _notas = CargarCalificaciones();
             }
-            List<Calificacion> IRepositorio.CargarCalificaciones()
+            List<Calificacion> IRepositorio.CargarCalificaciones() => _notas;
+            void IRepositorio.GuardarCalificaciones(List<Calificacion> data) => GuardarCalificaciones(data);
+            void IRepositorio.GuardarCalificacion(Calificacion nota) => GuardarCalificaciones(_notas);
+
+            //Private
+            private List<Calificacion> CargarCalificaciones()
             {
                 var txtJson = File.ReadAllText(datafile);
                 return JsonSerializer.Deserialize<List<Calificacion>>(txtJson);
             }
-            void IRepositorio.GuardarCalificaciones(List<Calificacion> data)
+            private void GuardarCalificaciones(List<Calificacion> data)
             {
                 var options = new JsonSerializerOptions { WriteIndented = true };
                 var json = JsonSerializer.Serialize(data, options);
                 File.WriteAllText(datafile, json);
             }
+
         }
+
     }
     /*
     Core. Utilidades típicas de una aplicación

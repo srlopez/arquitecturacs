@@ -47,7 +47,17 @@ Revisa del Sitema
 Y mira cómo deben ser invocadas desde el controlador.
 
 Arrancamos la aplicación en la Terminal con `.vscode/launch.json` con este valor:   
-            `"console": "integratedTerminal",`
+```
+        "console": "integratedTerminal",
+```
 
 # Utilizando el DI Contenedor de Microsoft
-`dotnet add package Microsoft.Extensions.DependencyInjection --version 6.0.0`  
+dotnet add package Microsoft.Extensions.DependencyInjection --version 6.0.0  
+
+# Utilizando SQL con SQLite  
+
+dotnet add package Mono.Data.Sqlite --version 1.0.61
+NO he sido capaz de usar SQLite en Linux
+
+Error
+linux mono Unable to load shared library 'sqlite3' or one of its dependencies
