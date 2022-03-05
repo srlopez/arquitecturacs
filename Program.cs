@@ -1,5 +1,5 @@
-﻿#define xDI 
-// IoC Directiva para compilar utilizando nuestro Contenedor de Dependencias
+﻿#define DI 
+// CID Directiva para compilar utilizando nuestro Contenedor de Inyección de Dependencias
 // DI para compilar con el Contenedor de Servicios de Microsoft
 // {OTROVALOR} y el programa es una tiípica arquitectura de Tres Capas
 using System;
@@ -38,13 +38,13 @@ namespace Aplicacion
             var _serviceProvider = services.BuildServiceProvider(true);
             IServiceScope scope = _serviceProvider.CreateScope();
             var controlador = scope.ServiceProvider.GetRequiredService<Controlador>();
-#elif IoC
-            // Utilizando Core.IoC como contenedor de servicios
-            IoC.Register<IRepositorio, RepositorioJSON>();
-            IoC.Register<Sistema>();
-            IoC.Register<Vista>();
-            IoC.Register<Controlador>();
-            var controlador = IoC.Create<Controlador>();
+#elif CID
+            // Utilizando Core.CID como contenedor de servicios
+            CID.Register<IRepositorio, RepositorioJSON>();
+            CID.Register<Sistema>();
+            CID.Register<Vista>();
+            CID.Register<Controlador>();
+            var controlador = CID.Create<Controlador>();
 #else
             // Arquitectura en Tres Capas
             var repositorio = new RepositorioJSON();
@@ -309,6 +309,7 @@ namespace Aplicacion
             }
             public decimal CalculoDeLaMedia()
             {
+                //Notas.Select(calificacion => calificacion.Nota).Average();
                 var aNotas = Notas.Select(calificacion => calificacion.Nota).ToArray();
                 return CalculoDeLaSuma(aNotas) / Notas.Count;
                 // función interna
@@ -430,12 +431,12 @@ namespace Aplicacion
     namespace Core
     {
         // Static para referenciarlo desde todos los componentes
-        public static class IoC
+        public static class CID
         {
             private static readonly Dictionary<Type, (Type, Object)> services =
                 new Dictionary<Type, (Type, Object)>();
 
-            static IoC() { }
+            static CID() { }
 
             #region Register
             public static void Register<TImplementation>() =>
