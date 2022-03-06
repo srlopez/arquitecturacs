@@ -1,11 +1,10 @@
 ﻿#define DI 
 // CID Directiva para compilar utilizando nuestro Contenedor de Inyección de Dependencias
 // DI para compilar con el Contenedor de Servicios de Microsoft
-// {OTROVALOR} y el programa es una tiípica arquitectura de Tres Capas
+// {OTROVALOR} y el programa es una típica arquitectura de Tres Capas
 using System;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Collections.Generic;
 using System.Globalization;

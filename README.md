@@ -41,7 +41,7 @@ Echándole imaginación, y añadiendo Examen/Curso podríamos hacer otras cosita
 ### Más
 Suponemos un entorno multiusuario. Entonces...
 Los métodos del sistema deberían ser asíncronos, y las estructuras de datos deberían ser capaces de ser accedidas concurrentemente.
-Revisa del Sitema
+Revisa del Sistema
 - AñadirNota
 - PorcentajeXSexo
 Y mira cómo deben ser invocadas desde el controlador.
@@ -54,6 +54,10 @@ Arrancamos la aplicación en la Terminal con `.vscode/launch.json` con este valo
 # Utilizando el DI Contenedor de Microsoft
 dotnet add package Microsoft.Extensions.DependencyInjection --version 6.0.0  
 
-# Utilizando SQL con SQLite  
-dotnet add package Microsoft.EntityFrameworkCore.Sqlite --version 6.0.2
-dotnet add package Microsoft.Data.Sqlite
+# Se han planteado 3 repositorios
+Para simplificar leemos todos los datos en la instaciación del repositorio, y sólo salvamos todos al final.  
+Un Repo es en formato CSV, otro en formato JSON y otro en DB SQLite3
+
+Para usar SQL con SQLite  necesitamos estos paquetes.   
+`dotnet add package Microsoft.EntityFrameworkCore.Sqlite --version 6.0.2`
+`dotnet add package Microsoft.Data.Sqlite`
