@@ -274,7 +274,7 @@ namespace Aplicacion
         }
     }
     /*
-    Capa de Negocio/Bussness Logic
+    Capa de Negocio/Business Logic
     Cubre la lógica principal de la aplicación.
     */
     namespace Negocio
@@ -310,14 +310,17 @@ namespace Aplicacion
             }
             public decimal CalculoDeLaMedia()
             {
+                //Notas.Average(calificacion => calificacion.Nota);
                 //Notas.Select(calificacion => calificacion.Nota).Average();
+
                 var aNotas = Notas.Select(calificacion => calificacion.Nota).ToArray();
                 return CalculoDeLaSuma(aNotas) / Notas.Count;
-                // función interna
+                // ejemplo de función interna a una función
                 decimal CalculoDeLaSuma(decimal[] datos) => datos.Sum();
             }
             public async Task AñadirNota(Calificacion cal)
             {
+                // Bloqueo
                 lock (bloqueo)
                 {
                     Notas.Add(cal);
@@ -338,7 +341,7 @@ namespace Aplicacion
     }
     /*
     Capa de Almacen de Datos/Repositorio
-    Contiene los servicios de acceso a datos
+    Contiene los servicios de acceso a datos CSV, JSON, SQLite
     */
     namespace Data
     {
@@ -492,8 +495,8 @@ namespace Aplicacion
     }
     /*
     Core. Utilidades típicas de una aplicación
-    Logger, etc..
-    IoC
+    Logger, Configuración, etc..
+    CID
     */
     namespace Core
     {
