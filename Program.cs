@@ -5,11 +5,13 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Data.Sqlite;
 
 
 using static System.Console;
@@ -31,7 +33,7 @@ namespace Aplicacion
 #if DI
             // DI Utilizando ServiceCollection como contenedor de servicios
             var services = new ServiceCollection();
-            services.AddSingleton<IRepositorio, RepositorioCSV>();
+            services.AddSingleton<IRepositorio, RepositorioSQLite>();
             services.AddSingleton<Sistema>();
             services.AddSingleton<Vista>();
             services.AddSingleton<Controlador>();
@@ -347,7 +349,6 @@ namespace Aplicacion
         {
             List<Calificacion> CargarCalificaciones();
             void GuardarCalificaciones(List<Calificacion> notas);
-            void GuardarCalificacion(Calificacion nota);
         }
         public class RepositorioCSV : IRepositorio
         {
@@ -362,7 +363,6 @@ namespace Aplicacion
             }
             List<Calificacion> IRepositorio.CargarCalificaciones() => _notas;
             void IRepositorio.GuardarCalificaciones(List<Calificacion> data) => GuardarCalificaciones(data);
-            void IRepositorio.GuardarCalificacion(Calificacion nota) => GuardarCalificaciones(_notas);
 
             // Privados
             // DTO=>Modelo
@@ -405,7 +405,6 @@ namespace Aplicacion
             }
             List<Calificacion> IRepositorio.CargarCalificaciones() => _notas;
             void IRepositorio.GuardarCalificaciones(List<Calificacion> data) => GuardarCalificaciones(data);
-            void IRepositorio.GuardarCalificacion(Calificacion nota) => GuardarCalificaciones(_notas);
 
             //Private
             private List<Calificacion> CargarCalificaciones()
@@ -421,7 +420,76 @@ namespace Aplicacion
             }
 
         }
+        public class RepositorioSQLite : IRepositorio
+        {
+            private string _datafile;
+            private string _connString;
+            private List<Calificacion> _notas;
 
+            public RepositorioSQLite()
+            {
+                _datafile = "notas.db";
+                _connString = "Data Source=" + _datafile + ";";
+                if (!File.Exists(_datafile)) CrearTabla();
+                _notas = CargarCalificaciones();
+            }
+            List<Calificacion> IRepositorio.CargarCalificaciones() => _notas;
+            void IRepositorio.GuardarCalificaciones(List<Calificacion> data) => GuardarCalificaciones(data);
+
+            // Privados
+            private void CrearTabla() => ExecuteCmd(
+                "CREATE TABLE IF NOT EXISTS NOTAS (" +
+                    "Nombre NVARCHAR(30) PRIMARY KEY, " +
+                    "Sexo CHAR(1), " +
+                    "Nota REAL" +
+                ")");
+            private List<Calificacion> CargarCalificaciones() =>
+                ExecuteReader("SELECT * FROM NOTAS", ParseCalificacion);
+            private void GuardarCalificaciones(List<Calificacion> data)
+            {
+                // DELETE
+                ExecuteCmd("DELETE FROM NOTAS");
+                // INSERTAMOS TODO
+                var insert = "INSERT INTO NOTAS (SEXO,NOMBRE,NOTA) VALUES ";
+                var values = String.Join(",",
+                    data.Select(cal => "('" + cal.Sexo + "','" + cal.Nombre + "'," + cal.Nota + ")")
+                    );
+                insert += values;
+                ExecuteCmd(insert);
+            }
+            // Privadas de SQLLite
+            private void ExecuteCmd(string sql)
+            {
+                using (SqliteConnection db = new SqliteConnection(_connString))
+                {
+                    db.Open();
+                    SqliteCommand cmd = new SqliteCommand(sql, db);
+                    cmd.ExecuteNonQuery();
+                    db.Close();
+                }
+            }
+            private List<T> ExecuteReader<T>(string sql, Func<SqliteDataReader, T> parseT)
+            {
+                List<T> data = new();
+                using (SqliteConnection db = new SqliteConnection(_connString))
+                {
+                    db.Open();
+                    SqliteCommand cmd = new SqliteCommand(sql, db);
+                    using (var reader = cmd.ExecuteReader())
+                        while (reader.Read())
+                            data.Add(parseT(reader));
+                    db.Close();
+                }
+                return data;
+            }
+            private Calificacion ParseCalificacion(SqliteDataReader reader) =>
+                new Calificacion
+                {
+                    Sexo = reader.GetString(1),
+                    Nombre = reader.GetString(0),
+                    Nota = reader.GetDecimal(2)
+                };
+        }
     }
     /*
     Core. Utilidades típicas de una aplicación

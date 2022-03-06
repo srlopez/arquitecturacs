@@ -38,7 +38,7 @@ Pues eso... un proyecto xUnit que verifique...
 
 Echándole imaginación, y añadiendo Examen/Curso podríamos hacer otras cositas, como los ejemplos de la pag 130 y 132 del documento PDF `PruebasDeSoftware.pdf` adjunto al proyecto
 
-### Mas
+### Más
 Suponemos un entorno multiusuario. Entonces...
 Los métodos del sistema deberían ser asíncronos, y las estructuras de datos deberían ser capaces de ser accedidas concurrentemente.
 Revisa del Sitema
@@ -55,9 +55,5 @@ Arrancamos la aplicación en la Terminal con `.vscode/launch.json` con este valo
 dotnet add package Microsoft.Extensions.DependencyInjection --version 6.0.0  
 
 # Utilizando SQL con SQLite  
-
-dotnet add package Mono.Data.Sqlite --version 1.0.61
-NO he sido capaz de usar SQLite en Linux
-
-Error
-linux mono Unable to load shared library 'sqlite3' or one of its dependencies
+dotnet add package Microsoft.EntityFrameworkCore.Sqlite --version 6.0.2
+dotnet add package Microsoft.Data.Sqlite
