@@ -11,7 +11,6 @@ using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Data.Sqlite;
-using System.Reflection;
 
 
 
@@ -50,7 +49,7 @@ namespace Aplicacion
             var controlador = CID.Create<Controlador>();
 #else
             // Arquitectura en Tres Capas
-            var repositorio = new RepositorioCSV();
+            var repositorio = new RepoCalificacionCSV();
             var sistema = new Sistema(repositorio);
             var vista = new Vista();
             var controlador = new Controlador(sistema, vista);
@@ -158,6 +157,7 @@ namespace Aplicacion
             public void Run()
             {
                 vista.LimpiarPantalla();
+                vista.MostrarLinea($"Modo persitencia: \"{sistema.RepoInfo}\".");
                 vista.MostrarLinea($"Aviso: para finalizar escribir \"{vista.cancelInput}\".\n");
                 // Acceso a las Claves del diccionario
                 var menu = casosDeUso.Keys.ToList<String>();
@@ -315,9 +315,10 @@ namespace Aplicacion
                         Nota = decimal.Parse(columns[2])
                     };
                 }
-                string IParserCSV.ToCSVRow() => $"{Sexo},{Nombre},{Nota}";
                 string IParserCSV.ToCSVHeader() => Calificacion.ToCSVHeader();
                 public static string ToCSVHeader() => "SX,NOMBRE,NOTA";
+                string IParserCSV.ToCSVRow() => $"{Sexo},{Nombre},{Nota}";
+
             }
         }
         public class Sistema
@@ -332,6 +333,7 @@ namespace Aplicacion
                 Repositorio = repositorio;
                 Notas = Repositorio.CargarCalificaciones();
             }
+            public string RepoInfo { get => $"{Repositorio.GetType().ToString().Split(".").Last()}"; }
             public void CerrarSistema()
             {
                 Repositorio.GuardarCalificaciones(Notas);
@@ -348,7 +350,7 @@ namespace Aplicacion
             }
             public async Task AñadirNota(Calificacion cal)
             {
-                // Bloqueo
+                // Bloqueo (En caso de multiusuario )
                 lock (bloqueo)
                 {
                     Notas.Add(cal);
@@ -380,27 +382,17 @@ namespace Aplicacion
             List<Calificacion> CargarCalificaciones();
             void GuardarCalificaciones(List<Calificacion> notas);
         }
-        public class RepositorioCSV : IRepositorio
+        public abstract class RepositorioCSV
+        // Repositorio Genérico CSV
         {
             private string _datafile;
-            private List<Calificacion> _notas;
 
-            public RepositorioCSV()
+            protected RepositorioCSV(string file)
             {
-                _datafile = "notas.csv";
-                _notas = CargarCalificaciones();
+                _datafile = file;
             }
-            List<Calificacion> IRepositorio.CargarCalificaciones() => _notas;
-            void IRepositorio.GuardarCalificaciones(List<Calificacion> data) => GuardarCalificaciones(data);
 
-            // Privados
-            private List<Calificacion> CargarCalificaciones() => Cargar<Calificacion>();
-           
-            private void GuardarCalificaciones(List<Calificacion> data) => Guardar<Calificacion>(data);
-
-            // GENERICOS CSV
-            // Escritos con finalidad didactica. Utiles si hubiese más Modelos a guardar en CSV
-            private void Guardar<T>(List<T> data) where T : IParserCSV
+            public void Guardar<T>(List<T> data) where T : IParserCSV
             {
                 string header = (string)typeof(T).GetMethod("ToCSVHeader").Invoke(null, new object[] { });
                 var lines = new List<string> { header };
@@ -408,7 +400,7 @@ namespace Aplicacion
                 File.WriteAllLines(_datafile, lines);
             }
 
-            private List<T> Cargar<T>() where T : IParserCSV =>
+            public List<T> Cargar<T>() where T : IParserCSV =>
                 File.ReadAllLines(_datafile)
                     .Skip(1)
                     .Where(row => row.Length > 0)
@@ -418,12 +410,25 @@ namespace Aplicacion
                         .Invoke(null, new object[] { row }))
                     .ToList();
         }
-        public class RepositorioJSON : IRepositorio
+        public class RepoCalificacionCSV : RepositorioCSV, IRepositorio
+        {
+            private List<Calificacion> _notas;
+
+            public RepoCalificacionCSV() : base("notas.csv")
+            {
+                _notas = Cargar<Calificacion>();
+            }
+
+            List<Calificacion> IRepositorio.CargarCalificaciones() => _notas;
+            void IRepositorio.GuardarCalificaciones(List<Calificacion> data) => Guardar<Calificacion>(data);
+
+        }
+        public class RepoCalificacionJSON : IRepositorio
         {
             private string datafile;
             private List<Calificacion> _notas;
 
-            public RepositorioJSON()
+            public RepoCalificacionJSON()
             {
                 datafile = "notas.json";
                 _notas = CargarCalificaciones();
@@ -445,13 +450,13 @@ namespace Aplicacion
             }
 
         }
-        public class RepositorioSQLite : IRepositorio
+        public class RepoCalificacionSQLite : IRepositorio
         {
             private string _datafile;
             private string _connString;
             private List<Calificacion> _notas;
 
-            public RepositorioSQLite()
+            public RepoCalificacionSQLite()
             {
                 _datafile = "notas.db";
                 _connString = "Data Source=" + _datafile + ";";
