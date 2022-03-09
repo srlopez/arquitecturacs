@@ -1,4 +1,4 @@
-﻿#define DI 
+﻿#define DIx 
 // CID Directiva para compilar utilizando nuestro Contenedor de Inyección de Dependencias
 // DI para compilar con el Contenedor de Servicios de Microsoft
 // {OTROVALOR} y el programa es una típica arquitectura de Tres Capas
@@ -11,6 +11,8 @@ using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Data.Sqlite;
+using System.Reflection;
+
 
 
 using static System.Console;
@@ -48,7 +50,7 @@ namespace Aplicacion
             var controlador = CID.Create<Controlador>();
 #else
             // Arquitectura en Tres Capas
-            var repositorio = new RepositorioJSON();
+            var repositorio = new RepositorioCSV();
             var sistema = new Sistema(repositorio);
             var vista = new Vista();
             var controlador = new Controlador(sistema, vista);
@@ -283,13 +285,39 @@ namespace Aplicacion
 
         namespace Modelos
         {
-            public class Calificacion
+
+            public interface IParserCSV
+            // Una interfaz para completar con métodos genéricos de guardar en CSV
+            {
+                Calificacion FromCSVRow(string row);
+                string ToCSVRow();
+                string ToCSVHeader();
+            }
+            public class Calificacion : IParserCSV
             {
                 public string Nombre { get; set; }
                 public string Sexo { get; set; }
                 public decimal Nota { get; set; }
                 // Muy importante. ToString es nuestro ModelView/DTO para vista
                 public override string ToString() => $"({Nombre}, {Nota})";
+
+                // Modelo=>DTO
+                Calificacion IParserCSV.FromCSVRow(string row) => Calificacion.FromCSVRow(row);
+                public static Calificacion FromCSVRow(string row)
+                {
+                    NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
+
+                    var columns = row.Split(',');
+                    return new Calificacion
+                    {
+                        Sexo = columns[0],
+                        Nombre = columns[1],
+                        Nota = decimal.Parse(columns[2])
+                    };
+                }
+                string IParserCSV.ToCSVRow() => $"{Sexo},{Nombre},{Nota}";
+                string IParserCSV.ToCSVHeader() => Calificacion.ToCSVHeader();
+                public static string ToCSVHeader() => "SX,NOMBRE,NOTA";
             }
         }
         public class Sistema
@@ -357,7 +385,6 @@ namespace Aplicacion
             private string _datafile;
             private List<Calificacion> _notas;
 
-
             public RepositorioCSV()
             {
                 _datafile = "notas.csv";
@@ -367,33 +394,29 @@ namespace Aplicacion
             void IRepositorio.GuardarCalificaciones(List<Calificacion> data) => GuardarCalificaciones(data);
 
             // Privados
-            // DTO=>Modelo
-            private Calificacion ParseRow(string row)
+            private List<Calificacion> CargarCalificaciones() => Cargar<Calificacion>();
+           
+            private void GuardarCalificaciones(List<Calificacion> data) => Guardar<Calificacion>(data);
+
+            // GENERICOS CSV
+            // Escritos con finalidad didactica. Utiles si hubiese más Modelos a guardar en CSV
+            private void Guardar<T>(List<T> data) where T : IParserCSV
             {
-                NumberFormatInfo nfi = new CultureInfo("en-US", false).NumberFormat;
-
-                var columns = row.Split(',');
-                return new Calificacion
-                {
-                    Sexo = columns[0],
-                    Nombre = columns[1],
-                    Nota = decimal.Parse(columns[2])
-                };
+                string header = (string)typeof(T).GetMethod("ToCSVHeader").Invoke(null, new object[] { });
+                var lines = new List<string> { header };
+                lines.AddRange(data.Select(i => i.ToCSVRow()));//<- Funciona desde instancia
+                File.WriteAllLines(_datafile, lines);
             }
-            // Modelo=>DTO
-            private string ToDTO(Calificacion item) => $"{item.Sexo},{item.Nombre},{item.Nota}";
 
-            private List<Calificacion> CargarCalificaciones() =>
+            private List<T> Cargar<T>() where T : IParserCSV =>
                 File.ReadAllLines(_datafile)
                     .Skip(1)
                     .Where(row => row.Length > 0)
-                    .Select(ParseRow).ToList();
-            private void GuardarCalificaciones(List<Calificacion> data)
-            {
-                var lines = new List<string> { "SX,NOMBRE,NOTA" };
-                lines.AddRange(data.Select(ToDTO));
-                File.WriteAllLines(_datafile, lines);
-            }
+                    //.Select(T.FromCSVRow) <- Invocar al método desde <T> No funciona
+                    .Select(row => (T)typeof(T)
+                        .GetMethod("FromCSVRow")// BindingFlags.Public | BindingFlags.Static)
+                        .Invoke(null, new object[] { row }))
+                    .ToList();
         }
         public class RepositorioJSON : IRepositorio
         {
