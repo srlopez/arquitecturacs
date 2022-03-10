@@ -287,7 +287,7 @@ namespace Aplicacion
         {
 
             public interface IParserCSV
-            // Una interfaz para completar con métodos genéricos de guardar en CSV
+            // Una interfaz para implementar en cada modelo que sea susceptible de guardarse en CSV
             {
                 Calificacion FromCSVRow(string row);
                 string ToCSVRow();
