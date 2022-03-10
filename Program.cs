@@ -301,7 +301,15 @@ namespace Aplicacion
                 // Muy importante. ToString es nuestro ModelView/DTO para vista
                 public override string ToString() => $"({Nombre}, {Nota})";
 
-                // Modelo=>DTO
+                /* 
+                Interfaz de objeto a CSV ------------------------------------------
+                Nota1: Esta aproximación es un poco forzada.
+                Desde un punto de vista,los modelos deben ser más 'POCO',
+                y estos métodos deberían pertenecer al repositrio específico,
+                y ser pasados como parámetros a las funciones de la clase abstracta.
+                Nota2: Presentamos de esta manera los métodos de forma pedagógica,
+                para entender otras formas de diseñar el servicio de repositorio.
+                */
                 Calificacion IParserCSV.FromCSVRow(string row) => Calificacion.FromCSVRow(row);
                 public static Calificacion FromCSVRow(string row)
                 {
