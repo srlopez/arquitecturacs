@@ -1,4 +1,4 @@
-﻿#define CID
+﻿#define CIDx
 // CID Directiva para compilar utilizando nuestro Contenedor de Inyección de Dependencias
 // DI para compilar con el Contenedor de Servicios de Microsoft
 // {OTROVALOR} y el programa es una típica arquitectura de Tres Capas
