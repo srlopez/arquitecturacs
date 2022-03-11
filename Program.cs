@@ -1,4 +1,4 @@
-﻿#define DIx 
+﻿#define CID
 // CID Directiva para compilar utilizando nuestro Contenedor de Inyección de Dependencias
 // DI para compilar con el Contenedor de Servicios de Microsoft
 // {OTROVALOR} y el programa es una típica arquitectura de Tres Capas
@@ -28,12 +28,13 @@ namespace Aplicacion
     */
     class Program
     {
+        static public string DataPath = "data/";
         static void Main(string[] args)
         {
 #if DI
             // DI Utilizando ServiceCollection como contenedor de servicios
             var services = new ServiceCollection();
-            services.AddSingleton<IRepositorio, RepositorioSQLite>();
+            services.AddSingleton<IRepositorio, RepoCalificacionSQLite>();
             services.AddSingleton<Sistema>();
             services.AddSingleton<Vista>();
             services.AddSingleton<Controlador>();
@@ -42,7 +43,7 @@ namespace Aplicacion
             var controlador = scope.ServiceProvider.GetRequiredService<Controlador>();
 #elif CID
             // Utilizando Core.CID como contenedor de servicios
-            CID.Register<IRepositorio, RepositorioJSON>();
+            CID.Register<IRepositorio, RepoCalificacionJSON>();
             CID.Register<Sistema>();
             CID.Register<Vista>();
             CID.Register<Controlador>();
@@ -397,7 +398,7 @@ namespace Aplicacion
 
             protected RepositorioCSV(string file)
             {
-                _datafile = file;
+                _datafile = Program.DataPath + file;
             }
 
             public void Guardar<T>(List<T> data) where T : IParserCSV
@@ -438,7 +439,7 @@ namespace Aplicacion
 
             public RepoCalificacionJSON()
             {
-                datafile = "notas.json";
+                datafile = Program.DataPath + "notas.json";
                 _notas = CargarCalificaciones();
             }
             List<Calificacion> IRepositorio.CargarCalificaciones() => _notas;
@@ -466,7 +467,7 @@ namespace Aplicacion
 
             public RepoCalificacionSQLite()
             {
-                _datafile = "notas.db";
+                _datafile = Program.DataPath + "notas.db";
                 _connString = "Data Source=" + _datafile + ";";
                 if (!File.Exists(_datafile)) CrearTabla();
                 _notas = CargarCalificaciones();
