@@ -11,9 +11,6 @@ using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Data.Sqlite;
-
-
-
 using static System.Console;
 
 namespace Aplicacion
@@ -391,7 +388,7 @@ namespace Aplicacion
             List<Calificacion> CargarCalificaciones();
             void GuardarCalificaciones(List<Calificacion> notas);
         }
-        public abstract class RepositorioCSV
+        public abstract class RepositorioCSV<T> where T : IParserCSV
         // Repositorio Genérico CSV
         {
             private string _datafile;
@@ -403,6 +400,7 @@ namespace Aplicacion
 
             public void Guardar<T>(List<T> data) where T : IParserCSV
             {
+                // metodo invocado desde static
                 string header = (string)typeof(T).GetMethod("ToCSVHeader").Invoke(null, new object[] { });
                 var lines = new List<string> { header };
                 lines.AddRange(data.Select(i => i.ToCSVRow()));//<- Funciona desde instancia
@@ -413,13 +411,13 @@ namespace Aplicacion
                 File.ReadAllLines(_datafile)
                     .Skip(1)
                     .Where(row => row.Length > 0)
-                    //.Select(T.FromCSVRow) <- Invocar al método desde <T> No funciona
+                    //.Select(T.FromCSVRow) <- Invocar al método stático desde <T> No funciona
                     .Select(row => (T)typeof(T)
                         .GetMethod("FromCSVRow")// BindingFlags.Public | BindingFlags.Static)
                         .Invoke(null, new object[] { row }))
                     .ToList();
         }
-        public class RepoCalificacionCSV : RepositorioCSV, IRepositorio
+        public class RepoCalificacionCSV : RepositorioCSV<Calificacion>, IRepositorio
         {
             private List<Calificacion> _notas;
 
