@@ -388,11 +388,10 @@ namespace Aplicacion
             List<Calificacion> CargarCalificaciones();
             void GuardarCalificaciones(List<Calificacion> notas);
         }
-        public abstract class RepositorioCSV<T> where T : IParserCSV
+        public abstract class RepositorioCSV //<T> where T : IParserCSV
         // Repositorio Genérico CSV
         {
             private string _datafile;
-
             protected RepositorioCSV(string file)
             {
                 _datafile = Program.DataPath + file;
@@ -417,7 +416,7 @@ namespace Aplicacion
                         .Invoke(null, new object[] { row }))
                     .ToList();
         }
-        public class RepoCalificacionCSV : RepositorioCSV<Calificacion>, IRepositorio
+        public class RepoCalificacionCSV : RepositorioCSV, IRepositorio
         {
             private List<Calificacion> _notas;
 
